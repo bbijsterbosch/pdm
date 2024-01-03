@@ -33,9 +33,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
 
     print(f"Initial observation : {ob}")
 
-    # add obstacles
-    env.add_obstacle(sphereObst1)
-    env.add_obstacle(urdfObst1)
+    
     
     
     # add walls
