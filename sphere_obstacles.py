@@ -41,7 +41,7 @@ sphere_list = [
     {
         "type": "sphere",
         "movable": False,
-        "geometry": {"position": [2.0, -0.0, 0.0], "radius": 0.4},
+        "geometry": {"position": [2.0, 2.0, 0.0], "radius": 0.4},
     },
     {
         "type": "sphere",
@@ -51,7 +51,7 @@ sphere_list = [
     {
         "type": "sphere",
         "movable": False,
-        "geometry": {"position": [3, 1, 0.0], "radius": 0.4},
+        "geometry": {"position": [3, 0, 0.0], "radius": 0.4},
     }
 ]
 
