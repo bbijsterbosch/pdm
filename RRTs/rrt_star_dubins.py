@@ -212,15 +212,15 @@ class RRTStarDubins(RRTStar):
         return path
 
 
-def rrt_star_dubins_run(obstacle1):
+def rrt_star_dubins_run(obstacle1, goal_pos, start_pos):
     print("Start rrt star with dubins planning")
 
     # ====Search Path with RRT====
     obstacleList = obstacle1# [x,y,size(radius)]
 
     # Set Initial parameters
-    start = [0.0, 0.0, np.deg2rad(0.0)]
-    goal = [14.0, 4.0, np.deg2rad(0.0)]
+    start = [start_pos[0], start_pos[1], np.deg2rad(0.0)]
+    goal = [goal_pos[0], goal_pos[1], np.deg2rad(0.0)]
 
     rrtstar_dubins = RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
     path = rrtstar_dubins.planning(animation=show_animation)

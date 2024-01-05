@@ -210,15 +210,15 @@ class RRTDubins(RRT):
         return path
 
 
-def RRT_dubins_run(obstacles1):
+def RRT_dubins_run(obstacles1, goal_pos, start_pos):
 
     print("Start " + __file__)
     # ====Search Path with RRT====
     obstacleList = obstacles1  # [x,y,size(radius)]
 
     # Set Initial parameters
-    start = [0.0, 0.0, np.deg2rad(0.0)]
-    goal = [14.0, 4.0, np.deg2rad(0.0)]
+    start = [start_pos[0], start_pos[1], np.deg2rad(0.0)]
+    goal = [goal_pos[0], goal_pos[1], np.deg2rad(0.0)]
 
     rrt_dubins = RRTDubins(start, goal, obstacleList, [-2.0, 20.0])
     path = rrt_dubins.planning(animation=show_animation)

@@ -11,8 +11,12 @@ from real_enviroment.goal_jules_v2 import goal1
 from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 from urdfenvs.sensors.full_sensor import FullSensor
 from real_enviroment.create_all_walls import sphere_list_export
+
+#For the RRT's
 from RRTs.RRT_dubins import RRT_dubins_run
 from RRTs.rrt_star_dubins import rrt_star_dubins_run
+
+from real_enviroment.goal_jules_v2 import goal_pos
 
 def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     robots = [
@@ -71,8 +75,8 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         obs_pos.append((x,y,rad))
     
     print(obs_pos)
-    RRT_dubins_run(obs_pos)
-    rrt_star_dubins_run(obs_pos)
+    RRT_dubins_run(obs_pos, goal_pos, pos0)
+    rrt_star_dubins_run(obs_pos, goal_pos, pos0)
 
     for i in range(n_steps):
         ob, *_ = env.step(action)

@@ -15,5 +15,4 @@ goal1Dict = {
     'low': [-3, -3, 0.1],
 }
 
-
 goal1 = StaticSubGoal(name="goal1", content_dict=goal1Dict)
