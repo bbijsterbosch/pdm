@@ -1,4 +1,4 @@
-from wall_of_spheres import (wall_of_n_spheres_x, wall_of_n_spheres_y, wall_of_n_spheres_x_right_to_point, wall_of_n_spheres_y_right_to_point)
+from real_enviroment.wall_of_spheres import (wall_of_n_spheres_x, wall_of_n_spheres_y, wall_of_n_spheres_x_right_to_point, wall_of_n_spheres_y_right_to_point)
 from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 
 

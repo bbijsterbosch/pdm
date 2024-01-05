@@ -1,19 +1,15 @@
 import gymnasium as gym
 import numpy as np
-import sys
-import pathlib
-import os
-
-sys.path.append(str(pathlib.Path(__file__).parent))
 
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
-from real_enviroment.goal_jules_v2 import goal1
-from mpscenes.obstacles.sphere_obstacle import SphereObstacle
-from urdfenvs.sensors.full_sensor import FullSensor
-from create_all_walls import sphere_list_export
-from RRT import RRT_Dubins
+from urdfenvs.scene_examples.obstacles import (
+    sphereObst1,
+    urdfObst1,
+    dynamicSphereObst3
+)
+from RRTs.obstacles_self import wall_obstacles_jules
+from RRTs.goal_jules import goal1
 
-print(os.catcwd())
 def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     robots = [
         BicycleModel(
@@ -33,35 +29,22 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     )
     action = np.array([0, 0])
     pos0 = np.array([0.0, 0.0, 0.0])
-    vel0 = np.array([0.0, 0.0, 0.0])
-    ob = env.reset(pos=pos0, vel=vel0)
-    
-    # add walls
-    for sphere_i in sphere_list_export:
-        env.add_obstacle(sphere_i)
-
-    # add goal
-    env.add_goal(goal1)
-
-    # add sensor
-    sensor = FullSensor(['position'], ['position', 'size'], variance=0.0)
-    env.add_sensor(sensor, [0])
-    # Set spaces AFTER all components have been added.
-    env.set_spaces()
-    
-    #env.set_spaces()
-
-
+    ob = env.reset(pos=pos0)
 
     print(f"Initial observation : {ob}")
-    
 
+    
+    
+    
+    # add walls
+    for wall_i in wall_obstacles_jules:
+        print(wall_i)
+        env.add_obstacle(wall_i)
+    # add goal
+    env.add_goal(goal1)
     history = []
-    print(ob['robot_0']['FullSensor']['obstacles'])
     for i in range(n_steps):
         ob, *_ = env.step(action)
-        if i == 1:
-            print(ob['robot_0']['FullSensor'])
         if ob['robot_0']['joint_state']['steering'] > 0.2:
             action[1] = 0
         history.append(ob)
@@ -70,3 +53,6 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
 
 if __name__ == "__main__":
     run_prius(render=True)
+    
+    
+

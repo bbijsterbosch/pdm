@@ -10,10 +10,9 @@ from urdfenvs.urdf_common.bicycle_model import BicycleModel
 from real_enviroment.goal_jules_v2 import goal1
 from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 from urdfenvs.sensors.full_sensor import FullSensor
-from create_all_walls import sphere_list_export
-from RRT import RRT_Dubins
+from real_enviroment.create_all_walls import sphere_list_export
+from RRTs.RRT_dubins import RRT_dubins_run
 
-print(os.catcwd())
 def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     robots = [
         BicycleModel(
@@ -57,11 +56,24 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     
 
     history = []
-    print(ob['robot_0']['FullSensor']['obstacles'])
+    action = np.zeros(env.n())
+    ob, *_ = env.step(action)
+    obst_dict = ob['robot_0']['FullSensor']['obstacles']
+    
+    obstacles = [obstacle for obstacle in obst_dict]
+    obs_pos = []
+
+    for i in obstacles:
+        x = obst_dict[i]['position'][0]
+        y = obst_dict[i]['position'][1]
+        rad = obst_dict[i]['size'][0]
+        obs_pos.append((x,y,rad))
+    print(obs_pos)
+
+    RRT_dubins_run(obs_pos)
+
     for i in range(n_steps):
         ob, *_ = env.step(action)
-        if i == 1:
-            print(ob['robot_0']['FullSensor'])
         if ob['robot_0']['joint_state']['steering'] > 0.2:
             action[1] = 0
         history.append(ob)
