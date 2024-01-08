@@ -7,6 +7,15 @@ Author: Atsushi Sakai(@Atsushi_twi)
 import math
 import numpy as np
 import bisect
+import sys
+import pathlib
+import matplotlib.pyplot as plt
+
+
+sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))  # root dir
+sys.path.append(str(pathlib.Path(__file__).parent.parent))
+from RRTs import rrt_star_dubins
+from RRTs.rrt import RRT
 
 
 class CubicSpline1D:
@@ -337,13 +346,87 @@ def main_1d():
     plt.grid(True)
     plt.legend()
     plt.show()
+    
+def check_collision(spline_points, obstacles):
+    for point in spline_points:
+        for obstacle in obstacles:
+            obstacle_x, obstacle_y, obstacle_radius = obstacle
+            distance = np.sqrt((point[0] - obstacle_x) ** 2 + (point[1] - obstacle_y) ** 2)
+            if distance <= obstacle_radius:
+                return True  # Collision detected
+    return False  # No collisions detected
 
 
 def main_2d():  # pragma: no cover
+    
+    print("Start rrt star with dubins planning")
+
+    # ====Search Path with RRT====
+    obstacleList = [(4,5,1),
+                (4,1,1),
+                (4,3,1), 
+                (4,7,1), 
+                (4,-1,1),
+                (4,-3,1),
+                (0,14,1),
+                (2,14,1),
+                (4,14,1),
+                (6,14,1),
+                (8,14,1),
+                (10,14,1),
+                (12,14,1),
+                (14,14,1),
+                (16,14,1),
+                (10,12,1),
+                (10,10,1),
+                (10,8,1),
+                (10,6,1),
+                (10,4,1),
+                ]
+      # [x,y,size(radius)]
+
+    # Set Initial parameters
+    start = [0.0, 0.0, np.deg2rad(0.0)]
+    goal = [14.0, 4.0, np.deg2rad(0.0)]
+
+    show_animation = True
+
+    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
+    path = rrtstar_dubins.planning(animation=show_animation)
+
+    path_arr = np.array(path)
+    print(np.shape(path_arr))
+
+    # Draw final path
+    if show_animation:  # pragma: no cover
+        rrtstar_dubins.draw_graph()
+        plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
+        plt.grid(True)
+        plt.pause(0.001)
+
+        # plt.show()
+    
+    """
+    
+    QUBIC SPLINE PLANNER:
+    
+    """
+    
+    print(f'\n\nPATH[first]: {path_arr[np.shape(path_arr)[0]-1]}\n\n')
+    first = path_arr[np.shape(path_arr)[0]-1]
+    last = path_arr[0]
+    path_arr = path_arr[::40]
+    path_arr = np.append(path_arr, [first], axis=0)
+    # np.append(path_arr,last)
+    # print(f'\nthe path: {path_arr}\n')
+    
+    
     print("CubicSpline1D 2D test")
-    import matplotlib.pyplot as plt
-    x = [-2.5, 0.0, 2.5, 5.0, 7.5, 3.0, -1.0]
-    y = [0.7, -6, 5, 6.5, 0.0, 5.0, -2.0]
+    x = path_arr[:,0]
+    y = path_arr[:,1]
+    print(f'x: {x}\n')
+    print(f'y: {y}')
+    
     ds = 0.1  # [m] distance of each interpolated points
 
     sp = CubicSpline2D(x, y)
@@ -356,32 +439,55 @@ def main_2d():  # pragma: no cover
         ry.append(iy)
         ryaw.append(sp.calc_yaw(i_s))
         rk.append(sp.calc_curvature(i_s))
+    
+    ryaw = [yaw + np.pi for yaw in ryaw]
+    
+    plot_ryaw = ryaw[::10]
+    plotx = rx[::10]
+    ploty = ry[::10]
+    
+    turning_radius = [1/K for K in rk]
+    
+    print(f'Turning radius: {turning_radius}')
+        
+    
+    spline_points = (rx,ry)    
+    if check_collision(spline_points, obstacleList):
+        print("Collision detected! Adjust spline generation.")
+    else:
+        print("No collision detected. Spline path is safe.")
 
     plt.subplots(1)
     plt.plot(x, y, "xb", label="Data points")
     plt.plot(rx, ry, "-r", label="Cubic spline path")
+    plt.quiver(plotx, ploty, np.cos(plot_ryaw), np.sin(plot_ryaw), color='g', units='xy', scale=5, width=0.03, label='Yaw')
     plt.grid(True)
     plt.axis("equal")
     plt.xlabel("x[m]")
     plt.ylabel("y[m]")
     plt.legend()
 
-    plt.subplots(1)
-    plt.plot(s, [np.rad2deg(iyaw) for iyaw in ryaw], "-r", label="yaw")
-    plt.grid(True)
-    plt.legend()
-    plt.xlabel("line length[m]")
-    plt.ylabel("yaw angle[deg]")
+    # plt.subplots(1)
+    # plt.plot(s, [np.rad2deg(iyaw) for iyaw in ryaw], "-r", label="yaw")
+    # plt.grid(True)
+    # plt.legend()
+    # plt.xlabel("line length[m]")
+    # plt.ylabel("yaw angle[deg]")
 
-    plt.subplots(1)
-    plt.plot(s, rk, "-r", label="curvature")
-    plt.grid(True)
-    plt.legend()
-    plt.xlabel("line length[m]")
-    plt.ylabel("curvature [1/m]")
+    # plt.subplots(1)
+    # plt.plot(s, rk, "-r", label="curvature")
+    # plt.grid(True)
+    # plt.legend()
+    # plt.xlabel("line length[m]")
+    # plt.ylabel("curvature [1/m]")
+    
+    for (ox, oy, size) in obstacleList:
+            RRT.plot_circle(ox, oy, size)
 
     plt.show()
 
+    
+    
 
 if __name__ == '__main__':
     # main_1d()
