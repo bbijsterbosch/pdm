@@ -61,9 +61,12 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     
 
     history = []
+    # Perform action 
     action = np.zeros(env.n())
     ob, *_ = env.step(action)
     obst_dict = ob['robot_0']['FullSensor']['obstacles']
+    
+
     
     obstacles = [obstacle for obstacle in obst_dict]
     obs_pos = []
