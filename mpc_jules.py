@@ -42,7 +42,7 @@ def get_current_state(ob):
     x = np.zeros((4,1))
     x[0] = ob['robot_0']['joint_space']['position'][0]      #get x_position
     x[1] = ob['robot_0']['joint_space']['position'][1]      #get y_position
-    x[2] = ob['robot_0']['joint_space']['orientation']      #get yaw
+    x[2] = ob['robot_0']['joint_space']['position'][2]      #get yaw
     x[3] = ob['robot_0']['joint_space']['steering']         #get steering_angle
 
     return x
