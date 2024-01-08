@@ -2,7 +2,7 @@ import numpy as np
 import cvxpy as cp 
 import math
 
-dt = 0.2
+dt = 0.1
 
 def calc_B_matrix(yaw_angle, steer_angle, WB, dt):
     # WB => length of the vehicle
@@ -115,7 +115,7 @@ def calc_nearest_index(xcurrent, cx, cy, cyaw, pind):
     return ind, mind
 
 
-def calc_ref_trajectory(xcurrent, cx, cy, cyaw, ck, u_curent, dl, pind):
+def calc_ref_trajectory(xcurrent, cx, cy, cyaw, ck, u_curent, dl, pind, T, NX):
     # This trajectory is needed as reference trajectory for the mpc
     # xref => This will contain the reference trajectory
     # dref => This will contain the reference steering angles
@@ -165,7 +165,7 @@ def calc_ref_trajectory(xcurrent, cx, cy, cyaw, ck, u_curent, dl, pind):
     
 
 
-def mpc(NX, NU, T, traj_ref, Q, R, Rd, x_current, WB, dt):
+def mpc_ref_trajectory(NX, NU, T, traj_ref, Q, R, Rd, x_current, WB, dt):
     #NX   => number of state variables
     #NU   => number of input variables
     #T    => timer horizon
@@ -220,7 +220,7 @@ def mpc(NX, NU, T, traj_ref, Q, R, Rd, x_current, WB, dt):
     constraints += [cp.abs(u[1, :]) <= MAX_DSTEER]
 
 
-    prob = cp.Problem(cvxpy.Minimize(cost), constraints)
+    prob = cp.Problem(cp.Minimize(cost), constraints)
     prob.solve(solver=cp.ECOS, verbose=False)
 
     if prob.status == cp.OPTIMAL or prob.status == cp.OPTIMAL_INACCURATE:
@@ -241,4 +241,123 @@ def mpc(NX, NU, T, traj_ref, Q, R, Rd, x_current, WB, dt):
         print("Error: Cannot solve mpc..")
         o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel = None, None, None, None, None, None
 
+    return o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel
+
+
+def mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt):
+    #NX   => number of state variables
+    #NU   => number of input variables
+    #T    => timer horizon
+    # ref_point => has 
+    #Q    => Weight matrix for penalizing inputs
+    #R    => Weight matrix for penalizing error in reference states
+    #x_current     => current state x_current => [xc_pos, yc_pos, yaw_current, steering_angle_current]
+    
+    MAX_STEER = math.radians(45.0)  # maximum steering angle [rad]
+    MIN_STEER = math.radians(-45.0) # minimum steering angel [rad]
+    MAX_DSTEER = math.radians(30.0)  # maximum steering speed [rad/s]
+    MAX_SPEED = 10.0 / 3.6  # maximum speed [m/s]
+
+    x = cp.Variable((NX, T + 1))
+    u = cp.Variable((NU, T))
+    
+    cost = 0.0
+    constraints = []
+
+    for t in range(T):
+        cost += cp.quad_form(u[:, t], R)
+
+        if t != 0:
+            # Calculate the error in state 
+            cost += cp.quad_form(ref_point - x[:, t], Q)
+
+
+        # Linear model
+        # Get current yaw angle and steering angle from current state
+        yaw_c_angle = x[2, t]
+        steer_c_angle = x[3, t]
+        # Calculate the a matrix and B matric
+        A, B = get_State_space_matrix(yaw_c_angle, steer_c_angle, WB, dt)
+        # Calculate the new state and add it to the constraints
+        constraints += [x[:, t + 1] == A * x[:, t] + B * u[:, t]]
+
+        # Can be used to smoothen input
+        if t < (T - 1):
+            cost += cp.quad_form(u[:, t + 1] - u[:, t], Rd)
+            constraints += [cp.abs(u[1, t + 1] - u[1, t])
+                            <= MAX_DSTEER * dt]
+
+    # Constraint that the first state is the current state
+    constraints += [x[:, 0] == x_current]
+    # Constraint that the steering angle must always be below the max steering angle
+    constraints += [x[2, :] <= MAX_STEER ]
+    # Constraint that the steering angle must alwasy be above the min steering angle
+    constraints += [x[2, :] >= MIN_STEER ]
+    # Constraint the input speed must alsways be below the maximum speed
+    constraints += [cp.abs(u[0, :]) <= MAX_SPEED]
+    # constraint that the input steering velocity must always be below the maximum steering angle
+    constraints += [cp.abs(u[1, :]) <= MAX_DSTEER]
+
+
+    prob = cp.Problem(cp.Minimize(cost), constraints)
+    prob.solve(solver=cp.ECOS, verbose=False)
+
+    if prob.status == cp.OPTIMAL or prob.status == cp.OPTIMAL_INACCURATE:
+        # Get all the predicted x position
+        o_x = get_nparray_from_matrix(x.value[0, :])
+        # Get all the predicted y position
+        o_y = get_nparray_from_matrix(x.value[1, :])
+        # Get the predicted yaw angles
+        o_yaw = get_nparray_from_matrix(x.value[2, :])
+        # Get the predicted steering angles
+        o_steer = get_nparray_from_matrix(x.value[3, :])
+        # Get the predicted velocity inputs
+        u_v = get_nparray_from_matrix(u.value[0, :])
+        # Get the predicted steering velocity
+        u_steer_vel = get_nparray_from_matrix(u.value[1, :])
+
+    else:
+        print("Error: Cannot solve mpc..")
+        o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel = None, None, None, None, None, None
+
+    return o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel
+
+
+def n_points_further_than_closest_ind(closest_index, n):
+    return closest_index + n
+
+
+def get_ref_point(index_to_sampel_at, cx, cy, cyaw, csteer):
+    cx_ref     = cx[index_to_sampel_at]
+    cy_ref     = cy[index_to_sampel_at]
+    cyaw_ref   = cyaw[index_to_sampel_at]
+    csteer_ref = csteer[index_to_sampel_at]
+
+    return np.array([cx_ref, cy_ref, cyaw_ref, csteer_ref]).reshape(4, 1)
+
+def run_mpc(ob, cx, cy, cyaw, csteer, pind, n):
+    WB = 4.6*0.3 # wheel-base of prius
+    NX = 4       # Number of states variables
+    NU = 2       # Number of inputs variables
+    T  = 2   # time horizon in (s)
+    dt = 0.1 # time steps in (s)
+
+    Q  = np.diag[1.0, 1.0, 0.5, 0.5] 
+    R  = np.diag[0.1, 0.1]
+    Rd = np.diag[0.01, 1.0]
+
+
+
+    #pind = previous index
+    # step 1) Get current state
+    x_current = get_current_state(ob)
+    # step 2) Get closest index postion of closest point on the path
+    index_near = calc_nearest_index(x_current, cx, cy, cyaw, pind)
+    # step 3) Get the point that lies n indices further than index near 
+    ref_index = n_points_further_than_closest_ind(index_near, n)
+    # step 4) Get ref point that lies n indices further than index near
+    ref_point = get_ref_point(ref_index, cx, cy, cyaw, csteer)
+
+
+    o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel = mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt)
     return o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel
