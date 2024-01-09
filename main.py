@@ -25,6 +25,9 @@ from real_enviroment.goal_jules_v2 import goal_pos
 #For the local path planner lqr
 from lqr_speed_steer_control import lqr_run
 
+# For the obstacles
+import three_environments
+
 def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     robots = [
         BicycleModel(
@@ -47,9 +50,15 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     vel0 = np.array([0.0, 0.0, 0.0])
     ob = env.reset(pos=pos0, vel=vel0)
     
-    # add walls
-    for sphere_i in sphere_list_export:
-        env.add_obstacle(sphere_i)
+    # # add walls
+    # for sphere_i in sphere_list_export:
+    #     env.add_obstacle(sphere_i)
+        
+    # Add the ostacles
+    environment = three_environments.build_environment(env_id = 1)  # Choose the environment (0 for easy, 1 for medium, 2 for hard)
+    converted_spheres = three_environments.circles_to_spheres(environment, radius=0.4)  
+    for sphere in converted_spheres:
+        env.add_obstacle(sphere)
 
     # add goal
     env.add_goal(goal1)

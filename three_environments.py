@@ -5,6 +5,7 @@ import sys
 import pathlib
 import matplotlib.pyplot as plt
 
+from real_enviroment.wall_of_spheres import create_sphere
 
 def build_environment(env_id):
     
@@ -54,3 +55,16 @@ def build_environment(env_id):
         print(f'Please choose between environments 0 (easy), 1 (medium), 2 (hard)!')
         
         
+def circles_to_spheres(obstacle_list, radius):
+    sphere_list = []
+    for circle in obstacle_list:
+        center_x, center_y, _ = circle  # Ignore the circle's radius
+        sphere = create_sphere([center_x, center_y, 0], radius)  # Assuming z=0 for 2D visualization
+        sphere_list.append(sphere)
+    return sphere_list
+
+# Example usage:
+# environment = build_environment(1)  # Choose the environment (0 for easy, 1 for medium, 2 for hard)
+# converted_spheres = circles_to_spheres(environment, radius=0.4)  # Convert circles to spheres with a radius of 0.4
+
+# Now you have a list of spheres in the format suitable for visualization.
