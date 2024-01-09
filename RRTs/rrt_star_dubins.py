@@ -14,6 +14,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 from RRTs import dubins_path_planner
 from RRTs.rrt_star import RRTStar
+from RRTs.rrt import RRT
 from RRTs.plot import plot_arrow
 
 show_animation = True
@@ -36,7 +37,7 @@ class RRTStarDubins(RRTStar):
 
     def __init__(self, start, goal, obstacle_list, rand_area,
                  goal_sample_rate=10,
-                 max_iter=100,
+                 max_iter=300,
                  connect_circle_dist=50.0,
                  robot_radius=1.0,
                  ):
@@ -116,13 +117,16 @@ class RRTStarDubins(RRTStar):
             if node.parent:
                 plt.plot(node.path_x, node.path_y, "-g")
 
+        # for (ox, oy, size) in self.obstacle_list:
+        #     plt.plot(ox, oy, "ok", ms=30 * size)
+            
         for (ox, oy, size) in self.obstacle_list:
-            plt.plot(ox, oy, "ok", ms=30 * size)
+            RRT.plot_circle(ox, oy, size)
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
         plt.axis([-2, 32, -2, 32])
-        plt.grid(True)
+        plt.grid(False)
         self.plot_start_goal_arrow()
         plt.pause(0.01)
 
@@ -196,8 +200,6 @@ class RRTStarDubins(RRTStar):
                                 
             if yaw_diff <= self.goal_yaw_th:
                 final_goal_indexes.append(i)
-            print(f'diff angle: {(self.node_list[i].yaw - self.end.yaw)}\n')
-            print(f'goal yaw: {self.goal_yaw_th}\n')
         if not final_goal_indexes:
             return None
 
@@ -236,7 +238,7 @@ def rrt_star_dubins_run(obstacle1, goal_pos, start_pos):
     if show_animation:  # pragma: no cover
         rrtstar_dubins.draw_graph()
         plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-        plt.grid(True)
+        plt.grid(False)
         plt.pause(0.001)
 
         plt.show()

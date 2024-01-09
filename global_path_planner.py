@@ -1,6 +1,4 @@
-import math
 import numpy as np
-import bisect
 import sys
 import pathlib
 import matplotlib.pyplot as plt
@@ -36,7 +34,7 @@ def RRT_star_Dubins(obstacleList, start, goal):
     if show_animation:  # pragma: no cover
         rrtstar_dubins.draw_graph()
         plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-        plt.grid(True)
+        plt.grid(False)
         plt.pause(0.001)
 
         # plt.show()
@@ -46,6 +44,9 @@ def RRT_star_Dubins(obstacleList, start, goal):
 def cubic_splines(path_arr, obstacleList, env_id):
     
     finish = path_arr[np.shape(path_arr)[0]-1]
+    path_rrt = path_arr
+    rrt_x = path_rrt[:,0]
+    rrt_y = path_rrt[:,1]
     
     if env_id == 0:
         path_arr = path_arr[::40]
@@ -94,7 +95,6 @@ def cubic_splines(path_arr, obstacleList, env_id):
     
     print(f'Number of points: {np.shape(rx)[0]}\n')
     
-    
     spline_points = np.zeros((len(rx),2))
     for i in range(len(rx)):
         spline_points[i] = (rx[i],ry[i])
@@ -105,13 +105,15 @@ def cubic_splines(path_arr, obstacleList, env_id):
         print("No collision detected. Spline path is safe.\n")
 
     plt.subplots(1)
-    plt.plot(x, y, "xb", label="Data points")
-    plt.plot(rx, ry, "-r", label="Cubic spline path")
+    # plt.plot(x, y, "xb", label="Data points")
+    plt.plot(rx, ry, "-b", label="Cubic spline path")
+    plt.plot(rrt_x, rrt_y, "-r", label="RRT-star Dubins path")
     plt.quiver(plotx, ploty, np.cos(plot_ryaw), np.sin(plot_ryaw), color='g', units='xy', scale=5, width=0.03, label='Yaw')
     for idx in idx_wrong_K:
         plt.scatter(rx[idx],ry[idx], c="black", label="Turn too sharp")
-    plt.grid(True)
-    plt.axis("equal")
+    plt.grid(False)
+    # plt.axis("equal")
+    plt.axis([-2, 32, -2, 32])
     plt.xlabel("x[m]")
     plt.ylabel("y[m]")
     plt.legend()
@@ -127,8 +129,8 @@ def cubic_splines(path_arr, obstacleList, env_id):
     
 def global_path_planner_run():
     
-    # select environment
-    env_id = 0
+    # select environment. 0 = easy, 1 = medium, 2 = hard
+    env_id = 1
     
     # set start and goal locationis
     if env_id == 0 or env_id == 1:
@@ -138,13 +140,14 @@ def global_path_planner_run():
         start = [0.0, 0.0, np.deg2rad(90.0)]
         goal = [0.0, 26.0, np.deg2rad(180.0)]   
     
-    
+    # retreive the obstacles of the environment
     obstacleList = build_environment(env_id) 
     
+    # use RRT star Dubins for the path planning
     path = RRT_star_Dubins(obstacleList, start, goal)
     
+    # use cubic splines to smoothen the path
     cx, cy, cyaw, ck, s = cubic_splines(path, obstacleList, env_id)
-    
     
     return cx, cy, cyaw, ck, s
 
