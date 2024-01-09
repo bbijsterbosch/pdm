@@ -85,6 +85,8 @@ def get_linear_model_matrix(v, phi, delta):
     A[1, 3] = DT * v * math.cos(phi)
     A[3, 2] = DT * math.tan(delta) / WB
 
+    print(phi)
+    print(delta)
     B = np.zeros((NX, NU))
     B[2, 0] = DT
     B[3, 1] = DT * v / (WB * math.cos(delta) ** 2)

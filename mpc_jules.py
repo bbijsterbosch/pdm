@@ -3,12 +3,34 @@ import cvxpy as cp
 import math
 
 dt = 0.1
+# Taylor expansians to create convex functions for sine, cosine and tangent
+def cos_taylor(x, terms = 5):
+    result = 0
+    for n in range(terms):
+        term = ((-1)**n * x**(2*n)) / math.factorial(2*n)
+        result += term
+    return result
+
+def sin_taylor(x, terms=5):
+    result = 0
+    for n in range(terms):
+        term = ((-1)**n * x**(2*n + 1)) / math.factorial(2*n + 1)
+        result += term
+    return result
+
+def tan_taylor(x, terms=5):
+    result = 0
+    for n in range(1, terms+1):
+        term = math.factorial(2*n-1) / math.factorial(2*n) * (-4)**n * (1 - 2*n) / math.factorial(2*n-1) * x**(2*n-1)
+        result += term
+    return result
 
 def calc_B_matrix(yaw_angle, steer_angle, WB, dt):
     # WB => length of the vehicle
-    B = np.array([[np.cos(yaw_angle)*dt, 0],
-                  [np.sin(yaw_angle)*dt, 0],
-                  [np.tan(steer_angle)/WB, 0],
+    print(yaw_angle)
+    B = np.array([[math.cos(yaw_angle)*dt, 0],
+                  [math.sin(yaw_angle)*dt, 0],
+                  [math.tan(steer_angle)/WB, 0],
                   [0, 1]])
     return B
 
@@ -30,7 +52,7 @@ def get_State_space_matrix(yaw_angle, steer_angle, WB, dt):
     A = np.matrix(np.eye(4))
     B = calc_B_matrix(yaw_angle, steer_angle, WB, dt)
     
-    return A, B
+    return np.array(A), np.array(B)
 
 
 def get_next_state(A, B, x_current, u):
@@ -40,10 +62,12 @@ def get_next_state(A, B, x_current, u):
 def get_current_state(ob):
 
     x = np.zeros((4,1))
-    x[0] = ob['robot_0']['joint_space']['position'][0]      #get x_position
-    x[1] = ob['robot_0']['joint_space']['position'][1]      #get y_position
-    x[2] = ob['robot_0']['joint_space']['position'][2]      #get yaw
-    x[3] = ob['robot_0']['joint_space']['steering']         #get steering_angle
+    x[0] = ob['robot_0']['joint_state']['position'][0]      #get x_position
+    x[1] = ob['robot_0']['joint_state']['position'][1]      #get y_position
+    x[2] = ob['robot_0']['joint_state']['position'][2]      #get yaw
+    x[3] = ob['robot_0']['joint_state']['steering']         #get steering_angle
+    # print(f'yaw angle: {x[2]}')
+    # print(f'steer angle: {x[3]}')
 
     return x
 
@@ -83,11 +107,13 @@ def calc_nearest_index(xcurrent, cx, cy, cyaw, pind):
     pind     => This contains the previous nearest index of the closest point on the path
 
     """
+    max_index = len(cx) - 1
     x_current = xcurrent[0]
     y_current = xcurrent[1]
     # Search index number
     N_IND_SEARCH = 10  # Search index number
     # Search at the indices from pind until pind + N_IND_SEARCH and use those indices to create a list of distances to the path.
+    # print(f'this is pind: {pind}')
     dx = [x_current - icx for icx in cx[pind:(pind + N_IND_SEARCH)]]
     dy = [y_current - icy for icy in cy[pind:(pind + N_IND_SEARCH)]]
 
@@ -112,7 +138,7 @@ def calc_nearest_index(xcurrent, cx, cy, cyaw, pind):
     if angle < 0:
         mind *= -1
     # Return the index of the nearest point on the path and the distance
-    return ind, mind
+    return ind
 
 
 def calc_ref_trajectory(xcurrent, cx, cy, cyaw, ck, u_curent, dl, pind, T, NX):
@@ -253,23 +279,23 @@ def mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt):
     #R    => Weight matrix for penalizing error in reference states
     #x_current     => current state x_current => [xc_pos, yc_pos, yaw_current, steering_angle_current]
     
-    MAX_STEER = math.radians(45.0)  # maximum steering angle [rad]
-    MIN_STEER = math.radians(-45.0) # minimum steering angel [rad]
-    MAX_DSTEER = math.radians(30.0)  # maximum steering speed [rad/s]
-    MAX_SPEED = 10.0 / 3.6  # maximum speed [m/s]
+    MAX_STEER = math.radians(180.0)  # maximum steering angle [rad]
+    MIN_STEER = math.radians(-180.0) # minimum steering angel [rad]
+    MAX_DSTEER = math.radians(100.0)  # maximum steering speed [rad/s]
+    MAX_SPEED = 20.0 / 3.6  # maximum speed [m/s]
 
-    x = cp.Variable((NX, T + 1))
-    u = cp.Variable((NU, T))
+    x = cp.Variable((NX, int(T/dt) + 1))
+    u = cp.Variable((NU, int(T/dt)))
     
     cost = 0.0
     constraints = []
 
-    for t in range(T):
+    for t in range(int(T/dt)):
         cost += cp.quad_form(u[:, t], R)
 
         if t != 0:
             # Calculate the error in state 
-            cost += cp.quad_form(ref_point - x[:, t], Q)
+            cost += cp.quad_form(ref_point.flatten() - x[:, t], Q)
 
 
         # Linear model
@@ -277,9 +303,10 @@ def mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt):
         yaw_c_angle = x[2, t]
         steer_c_angle = x[3, t]
         # Calculate the a matrix and B matric
-        A, B = get_State_space_matrix(yaw_c_angle, steer_c_angle, WB, dt)
+        A, B = get_State_space_matrix(x_current[2], x_current[3], WB, dt)
         # Calculate the new state and add it to the constraints
-        constraints += [x[:, t + 1] == A * x[:, t] + B * u[:, t]]
+    
+        constraints += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t]]
 
         # Can be used to smoothen input
         if t < (T - 1):
@@ -288,7 +315,7 @@ def mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt):
                             <= MAX_DSTEER * dt]
 
     # Constraint that the first state is the current state
-    constraints += [x[:, 0] == x_current]
+    constraints += [x[:, 0] == x_current.flatten()]
     # Constraint that the steering angle must always be below the max steering angle
     constraints += [x[2, :] <= MAX_STEER ]
     # Constraint that the steering angle must alwasy be above the min steering angle
@@ -339,18 +366,19 @@ def run_mpc(ob, cx, cy, cyaw, csteer, pind, n):
     WB = 4.6*0.3 # wheel-base of prius
     NX = 4       # Number of states variables
     NU = 2       # Number of inputs variables
-    T  = 2   # time horizon in (s)
+    T  = 2  # time horizon in (s)
     dt = 0.1 # time steps in (s)
 
-    Q  = np.diag[1.0, 1.0, 0.5, 0.5] 
-    R  = np.diag[0.1, 0.1]
-    Rd = np.diag[0.01, 1.0]
+    Q  = np.diag([7.0, 7.0, 5, 5]) 
+    R  = np.diag([1, 1])
+    Rd = np.diag([1, 1.0])
 
 
 
     #pind = previous index
     # step 1) Get current state
     x_current = get_current_state(ob)
+
     # step 2) Get closest index postion of closest point on the path
     index_near = calc_nearest_index(x_current, cx, cy, cyaw, pind)
     # step 3) Get the point that lies n indices further than index near 
@@ -360,4 +388,4 @@ def run_mpc(ob, cx, cy, cyaw, csteer, pind, n):
 
 
     o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel = mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt)
-    return o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel
+    return o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel, index_near

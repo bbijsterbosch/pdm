@@ -357,32 +357,12 @@ def check_collision(spline_points, obstacles):
     return False  # No collisions detected
 
 
-def main_2d():  # pragma: no cover
+def main_2d(obstacleList):  # pragma: no cover
     
     print("Start rrt star with dubins planning")
 
     # ====Search Path with RRT====
-    obstacleList = [(4,5,1),
-                (4,1,1),
-                (4,3,1), 
-                (4,7,1), 
-                (4,-1,1),
-                (4,-3,1),
-                (0,14,1),
-                (2,14,1),
-                (4,14,1),
-                (6,14,1),
-                (8,14,1),
-                (10,14,1),
-                (12,14,1),
-                (14,14,1),
-                (16,14,1),
-                (10,12,1),
-                (10,10,1),
-                (10,8,1),
-                (10,6,1),
-                (10,4,1),
-                ]
+    obstacleList = obstacleList
       # [x,y,size(radius)]
 
     # Set Initial parameters
@@ -485,7 +465,7 @@ def main_2d():  # pragma: no cover
             RRT.plot_circle(ox, oy, size)
 
     plt.show()
-
+    return rx, ry, ryaw, rk
     
     
 
