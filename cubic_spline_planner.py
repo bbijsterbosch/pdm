@@ -1,8 +1,6 @@
 """
 Cubic spline planner
 
-Author: Atsushi Sakai(@Atsushi_twi)
-
 """
 import math
 import numpy as np
@@ -353,13 +351,14 @@ def check_collision(spline_points, obstacles):
             obstacle_x, obstacle_y, obstacle_radius = obstacle
             distance = np.sqrt((point[0] - obstacle_x) ** 2 + (point[1] - obstacle_y) ** 2)
             if distance <= obstacle_radius:
+                print(f'point: {point} is causing a collision with distance {distance}')
                 return True  # Collision detected
     return False  # No collisions detected
 
 
 def main_2d(obstacleList):  # pragma: no cover
     
-    print("Start rrt star with dubins planning")
+    print("Start RRT star with Dubins planning")
 
     # ====Search Path with RRT====
     obstacleList = obstacleList
@@ -367,7 +366,7 @@ def main_2d(obstacleList):  # pragma: no cover
 
     # Set Initial parameters
     start = [0.0, 0.0, np.deg2rad(0.0)]
-    goal = [14.0, 4.0, np.deg2rad(0.0)]
+    goal = [14.0, 4.0, np.deg2rad(90.0)]
 
     show_animation = True
 
@@ -375,7 +374,6 @@ def main_2d(obstacleList):  # pragma: no cover
     path = rrtstar_dubins.planning(animation=show_animation)
 
     path_arr = np.array(path)
-    print(np.shape(path_arr))
 
     # Draw final path
     if show_animation:  # pragma: no cover
@@ -392,7 +390,6 @@ def main_2d(obstacleList):  # pragma: no cover
     
     """
     
-    print(f'\n\nPATH[first]: {path_arr[np.shape(path_arr)[0]-1]}\n\n')
     first = path_arr[np.shape(path_arr)[0]-1]
     last = path_arr[0]
     path_arr = path_arr[::40]
@@ -401,11 +398,9 @@ def main_2d(obstacleList):  # pragma: no cover
     # print(f'\nthe path: {path_arr}\n')
     
     
-    print("CubicSpline1D 2D test")
+    print("\nRunning CubicSpline\n")
     x = path_arr[:,0]
     y = path_arr[:,1]
-    print(f'x: {x}\n')
-    print(f'y: {y}')
     
     ds = 0.1  # [m] distance of each interpolated points
 
@@ -426,21 +421,32 @@ def main_2d(obstacleList):  # pragma: no cover
     plotx = rx[::10]
     ploty = ry[::10]
     
-    turning_radius = [1/K for K in rk]
+    idx_wrong_K = []    
+    for idx, K in enumerate(rk):
+        if K > 1:
+            print(f'K at {len(rx)-idx} is larger than 1: {K}\n')
+            idx_wrong_K = np.append(idx_wrong_K, idx)
     
-    print(f'Turning radius: {turning_radius}')
+    print(f'Number of points: {np.shape(rx)[0]}\n')
+    
+    print(f'Indexes of wrong Ks: {idx_wrong_K}\n')
         
     
-    spline_points = (rx,ry)    
+    spline_points = np.zeros((len(rx),2))
+    for i in range(len(rx)):
+        spline_points[i] = (rx[i],ry[i])
+        
     if check_collision(spline_points, obstacleList):
-        print("Collision detected! Adjust spline generation.")
+        print("Collision detected! Adjust spline generation.\n")
     else:
-        print("No collision detected. Spline path is safe.")
+        print("No collision detected. Spline path is safe.\n")
 
     plt.subplots(1)
     plt.plot(x, y, "xb", label="Data points")
     plt.plot(rx, ry, "-r", label="Cubic spline path")
     plt.quiver(plotx, ploty, np.cos(plot_ryaw), np.sin(plot_ryaw), color='g', units='xy', scale=5, width=0.03, label='Yaw')
+    for idx in idx_wrong_K:
+        plt.scatter(rx[idx],ry[idx], "-r", label="Turn too sharp")
     plt.grid(True)
     plt.axis("equal")
     plt.xlabel("x[m]")
@@ -471,4 +477,25 @@ def main_2d(obstacleList):  # pragma: no cover
 
 if __name__ == '__main__':
     # main_1d()
-    main_2d()
+    obstacleList = [(4,5,1),
+                (4,1,1),
+                (4,3,1), 
+                (4,7,1) , 
+                (4,-1,1),
+                (4,-3,1),
+                (0,14,1),
+                (2,14,1),
+                (4,14,1),
+                (6,14,1),
+                (8,14,1),
+                (10,14,1),
+                (12,14,1),
+                (14,14,1),
+                (16,14,1),
+                (10,12,1),
+                (10,10,1),
+                (10,8,1),
+                (10,6,1),
+                (10,4,1),
+                ]
+    main_2d(obstacleList)

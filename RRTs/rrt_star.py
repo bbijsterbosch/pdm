@@ -2,8 +2,6 @@
 
 Path planning Sample Code with RRT*
 
-author: Atsushi Sakai(@Atsushi_twi)
-
 """
 
 import math

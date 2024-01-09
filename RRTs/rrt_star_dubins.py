@@ -1,8 +1,6 @@
 """
 Path planning Sample Code with RRT and Dubins path
 
-author: AtsushiSakai(@Atsushi_twi)
-
 """
 import copy
 import math
@@ -40,7 +38,7 @@ class RRTStarDubins(RRTStar):
                  goal_sample_rate=10,
                  max_iter=500,
                  connect_circle_dist=50.0,
-                 robot_radius=0.5,
+                 robot_radius=1.0,
                  ):
         """
         Setting Parameter
