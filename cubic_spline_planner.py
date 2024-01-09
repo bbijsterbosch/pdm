@@ -398,7 +398,7 @@ def main_2d(obstacleList):  # pragma: no cover
     # print(f'\nthe path: {path_arr}\n')
     
     
-    print("\nRunning CubicSpline\n")
+    print("\n! Running CubicSpline !\n")
     x = path_arr[:,0]
     y = path_arr[:,1]
     

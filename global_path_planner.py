@@ -54,8 +54,6 @@ def cubic_splines(path_arr, obstacleList, env_id):
     else:
         path_arr = path_arr[::40]
     
-    
-    
     path_arr = np.append(path_arr, [finish], axis=0)
     # print(f'The path: {path_arr}\n')
     
@@ -77,7 +75,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
         ryaw.append(sp.calc_yaw(i_s))
         rk.append(sp.calc_curvature(i_s))
     
-    ryaw = [yaw + np.pi for yaw in ryaw]
+    # ryaw = [yaw + np.pi for yaw in ryaw]
     
     plot_ryaw = ryaw[::10]
     plotx = rx[::10]
@@ -87,12 +85,12 @@ def cubic_splines(path_arr, obstacleList, env_id):
     for idx, K in enumerate(rk):
         if K > 1:
             print(f'K at {len(rx)-idx} is larger than 1: {K}\n')
-            idx_wrong_K = np.append(idx_wrong_K, int(idx))
+            idx_wrong_K.append(idx)
             
     if np.shape(idx_wrong_K)[0] > 0:
         print(f'Indexes of wrong Ks: {idx_wrong_K}\n')
     else:
-        print(f'All curvatures satisfy the constraints!\n')
+        print(f'All curvatures satisfy the curvature constraints!\n')
     
     print(f'Number of points: {np.shape(rx)[0]}\n')
     
@@ -111,7 +109,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
     plt.plot(rx, ry, "-r", label="Cubic spline path")
     plt.quiver(plotx, ploty, np.cos(plot_ryaw), np.sin(plot_ryaw), color='g', units='xy', scale=5, width=0.03, label='Yaw')
     for idx in idx_wrong_K:
-        plt.scatter(rx[int(idx)],ry[int(idx)], "-r", label="Turn too sharp")
+        plt.scatter(rx[idx],ry[idx], c="black", label="Turn too sharp")
     plt.grid(True)
     plt.axis("equal")
     plt.xlabel("x[m]")
@@ -129,11 +127,17 @@ def cubic_splines(path_arr, obstacleList, env_id):
     
 def global_path_planner_run():
     
-    # Set Initial parameters
-    start = [0.0, 0.0, np.deg2rad(90.0)]
-    goal = [28.0, 28.0, np.deg2rad(90.0)]
+    # select environment
+    env_id = 0
     
-    env_id = 1
+    # set start and goal locationis
+    if env_id == 0 or env_id == 1:
+        start = [0.0, 0.0, np.deg2rad(90.0)]
+        goal = [28.0, 28.0, np.deg2rad(90.0)]
+    elif env_id == 2:
+        start = [0.0, 0.0, np.deg2rad(90.0)]
+        goal = [0.0, 26.0, np.deg2rad(180.0)]   
+    
     
     obstacleList = build_environment(env_id) 
     
