@@ -179,7 +179,7 @@ def calc_nearest_index(state, cx, cy, cyaw):
 
 
 def do_simulation(cx, cy, cyaw, ck, speed_profile, goal):
-    T = 500.0  # max simulation time
+    T = 60.0  # max simulation time
     goal_dis = 0.3
     stop_speed = 0.05
 
@@ -217,6 +217,9 @@ def do_simulation(cx, cy, cyaw, ck, speed_profile, goal):
         yaw.append(state.yaw)
         v.append(state.v)
         t.append(time)
+
+        if target_ind >= len(cx):
+            continue
 
         if target_ind % 1 == 0 and show_animation:
             plt.cla()
@@ -265,19 +268,18 @@ def calc_speed_profile(cyaw, target_speed):
     return speed_profile
 
 
-def lqr_run(cx, cy, cyaw, ck, s):
+def lqr_run(cx, cy, cyaw, ck, s, goal):
     print("LQR steering control tracking start!!")
 
-    target_speed = 10.0 / 3.6  # simulation parameter km/h -> m/s
+    target_speed = 5.0 / 3.6  # simulation parameter km/h -> m/s
 
     sp = calc_speed_profile(cyaw, target_speed)
 
     t, x, y, yaw, v = do_simulation(cx, cy, cyaw, ck, sp, goal)
-
     if show_animation:  # pragma: no cover
         plt.close()
         plt.subplots(1)
-        plt.plot(ax, ay, "xb", label="waypoints")
+        plt.plot(goal[0], goal[1], "xb", label="waypoints")
         plt.plot(cx, cy, "-r", label="target course")
         plt.plot(x, y, "-g", label="tracking")
         plt.grid(True)
@@ -301,7 +303,8 @@ def lqr_run(cx, cy, cyaw, ck, s):
         plt.ylabel("curvature [1/m]")
 
         plt.show()
+    return 
 
 
 if __name__ == '__main__':
-    main()
+    lqr_run()

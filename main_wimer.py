@@ -8,16 +8,21 @@ sys.path.append(str(pathlib.Path(__file__).parent))
 
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
 from real_enviroment.goal_jules_v2 import goal1
+from real_enviroment import goal_jules_v2 
 from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 from urdfenvs.sensors.full_sensor import FullSensor
 from real_enviroment.create_all_walls import sphere_list_export
 from cubic_spline_planner import main_2d
+from global_path_planner import global_path_planner_run
 from reference_path import csteer_bas, cx_bas, cy_bas, cyaw_bas
 #For the RRT's
 from RRTs.RRT_dubins import RRT_dubins_run
 from RRTs.rrt_star_dubins import rrt_star_dubins_run
 
 from real_enviroment.goal_jules_v2 import goal_pos
+
+#For the local path planner lqr
+from lqr_speed_steer_control import lqr_run
 
 def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     robots = [
@@ -47,7 +52,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
 
     # add goal
     env.add_goal(goal1)
-
+    
     # add sensor
     sensor = FullSensor(['position'], ['position', 'size'], variance=0.0)
     env.add_sensor(sensor, [0])
@@ -55,8 +60,6 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     env.set_spaces()
     
     #env.set_spaces()
-
-
 
     print(f"Initial observation : {ob}")
     
@@ -66,8 +69,6 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     action = np.zeros(env.n())
     ob, *_ = env.step(action)
     obst_dict = ob['robot_0']['FullSensor']['obstacles']
-    
-
     
     obstacles = [obstacle for obstacle in obst_dict]
     obs_pos = []
@@ -79,8 +80,12 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         obs_pos.append((x,y,rad))
     
     
-    cx, cy, cyaw, ck = main_2d(obs_pos)
+    cx, cy, cyaw, ck, s = global_path_planner_run()
     
+    goal = goal_jules_v2.goal1Dict["desired_position"]
+    lqr_run(cx, cy, cyaw, ck, s, (goal[0],goal[1]))
+
+
     csteer = np.arctan(ck)
     # csteer = list(csteer)
     
@@ -97,9 +102,9 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
 
     for i in range(n_steps):
         ob, *_ = env.step(action)
-        ox, oy, o_yaw, o_steer, u_v, u_steer_vel, index_near = mpc.run_mpc(ob, cx, cy, cyaw, csteer, pind, n)
-        pind = index_near
-        action = np.array([u_v[0], o_yaw[0]])
+        #ox, oy, o_yaw, o_steer, u_v, u_steer_vel, index_near = mpc.run_mpc(ob, cx, cy, cyaw, csteer, pind, n)
+        #pind = index_near
+        #action = np.array([u_v[0], o_yaw[0]])
         print(f'action: {action}')
         if ob['robot_0']['joint_state']['steering'] > 0.2:
             action[1] = 0

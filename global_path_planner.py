@@ -109,7 +109,7 @@ def cubic_splines(path_arr, obstacleList):
 
     plt.show()
     
-    return rx, ry, ryaw, rk
+    return rx, ry, ryaw, rk, s
 
 
     
