@@ -1,8 +1,6 @@
 """
 Cubic spline planner
 
-Author: Atsushi Sakai(@Atsushi_twi)
-
 """
 import math
 import numpy as np
@@ -353,6 +351,7 @@ def check_collision(spline_points, obstacles):
             obstacle_x, obstacle_y, obstacle_radius = obstacle
             distance = np.sqrt((point[0] - obstacle_x) ** 2 + (point[1] - obstacle_y) ** 2)
             if distance <= obstacle_radius:
+                print(f'point: {point} is causing a collision with distance {distance}')
                 return True  # Collision detected
     return False  # No collisions detected
 
@@ -365,7 +364,7 @@ def main_2d():  # pragma: no cover
     obstacleList = [(4,5,1),
                 (4,1,1),
                 (4,3,1), 
-                (4,7,1), 
+                # (4,7,1) , 
                 (4,-1,1),
                 (4,-3,1),
                 (0,14,1),
@@ -387,9 +386,9 @@ def main_2d():  # pragma: no cover
 
     # Set Initial parameters
     start = [0.0, 0.0, np.deg2rad(0.0)]
-    goal = [14.0, 4.0, np.deg2rad(0.0)]
+    goal = [14.0, 4.0, np.deg2rad(90.0)]
 
-    show_animation = True
+    show_animation = False
 
     rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
     path = rrtstar_dubins.planning(animation=show_animation)
@@ -412,7 +411,6 @@ def main_2d():  # pragma: no cover
     
     """
     
-    print(f'\n\nPATH[first]: {path_arr[np.shape(path_arr)[0]-1]}\n\n')
     first = path_arr[np.shape(path_arr)[0]-1]
     last = path_arr[0]
     path_arr = path_arr[::40]
@@ -424,8 +422,8 @@ def main_2d():  # pragma: no cover
     print("CubicSpline1D 2D test")
     x = path_arr[:,0]
     y = path_arr[:,1]
-    print(f'x: {x}\n')
-    print(f'y: {y}')
+    # print(f'x: {x}\n')
+    # print(f'y: {y}')
     
     ds = 0.1  # [m] distance of each interpolated points
 
@@ -448,10 +446,14 @@ def main_2d():  # pragma: no cover
     
     turning_radius = [1/K for K in rk]
     
-    print(f'Turning radius: {turning_radius}')
+    # print(f'Turning radius: {turning_radius}')
+    print(f'Number of points: {np.shape(rx)}')
         
     
-    spline_points = (rx,ry)    
+    spline_points = np.zeros((len(rx),2))
+    for i in range(len(rx)):
+        spline_points[i] = (rx[i],ry[i])
+        
     if check_collision(spline_points, obstacleList):
         print("Collision detected! Adjust spline generation.")
     else:
@@ -460,7 +462,7 @@ def main_2d():  # pragma: no cover
     plt.subplots(1)
     plt.plot(x, y, "xb", label="Data points")
     plt.plot(rx, ry, "-r", label="Cubic spline path")
-    plt.quiver(plotx, ploty, np.cos(plot_ryaw), np.sin(plot_ryaw), color='g', units='xy', scale=5, width=0.03, label='Yaw')
+    plt.quiver(plotx, ploty, np.cos(plot_ryaw), np.sin(plot_ryaw), color='g', units='xy', scale=50, width=0.03, label='Yaw')
     plt.grid(True)
     plt.axis("equal")
     plt.xlabel("x[m]")
