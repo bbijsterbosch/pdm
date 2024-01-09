@@ -2,8 +2,6 @@
 
 Dubins path planner sample code
 
-author Atsushi Sakai(@Atsushi_twi)
-
 """
 import sys
 import pathlib

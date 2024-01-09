@@ -428,6 +428,8 @@ def main_2d(obstacleList):  # pragma: no cover
             idx_wrong_K = np.append(idx_wrong_K, idx)
     
     print(f'Number of points: {np.shape(rx)[0]}\n')
+    
+    print(f'Indexes of wrong Ks: {idx_wrong_K}\n')
         
     
     spline_points = np.zeros((len(rx),2))

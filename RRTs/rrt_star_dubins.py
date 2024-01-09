@@ -1,8 +1,6 @@
 """
 Path planning Sample Code with RRT and Dubins path
 
-author: AtsushiSakai(@Atsushi_twi)
-
 """
 import copy
 import math
