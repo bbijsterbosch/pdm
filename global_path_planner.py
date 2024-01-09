@@ -23,7 +23,7 @@ def RRT_star_Dubins(obstacleList, start, goal):
 
     show_animation = True
 
-    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
+    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[0.0, 30.0], obstacle_list=obstacleList)
     path = rrtstar_dubins.planning(animation=show_animation)
 
     path_arr = np.array(path)

@@ -121,7 +121,7 @@ class RRTStarDubins(RRTStar):
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis([-2, 15, -2, 15])
+        plt.axis([-2, 32, -2, 32])
         plt.grid(True)
         self.plot_start_goal_arrow()
         plt.pause(0.01)
