@@ -11,6 +11,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent))
 from RRTs import rrt_star_dubins
 import cubic_spline_planner
 from RRTs.rrt import RRT
+from three_environments import build_environment
 
 def RRT_star_Dubins(obstacleList, start, goal):
     
@@ -118,27 +119,7 @@ def main():
     start = [0.0, 0.0, np.deg2rad(90.0)]
     goal = [14.0, 4.0, np.deg2rad(90.0)]
     
-    obstacleList = [(4,5,1),
-                (4,1,1),
-                (4,3,1), 
-                (4,7,1) , 
-                (4,-1,1),
-                (4,-3,1),
-                (0,14,1),
-                (2,14,1),
-                (4,14,1),
-                (6,14,1),
-                (8,14,1),
-                (10,14,1),
-                (12,14,1),
-                (14,14,1),
-                (16,14,1),
-                (10,12,1),
-                (10,10,1),
-                (10,8,1),
-                (10,6,1),
-                (10,4,1),
-                ]
+    obstacleList = build_environment(env_id = 1) 
     
     path = RRT_star_Dubins(obstacleList, start, goal)
     
