@@ -6,6 +6,8 @@ import pathlib
 import matplotlib.pyplot as plt
 
 from real_enviroment.wall_of_spheres import create_sphere
+from mpscenes.obstacles.sphere_obstacle import SphereObstacle
+
 
 def build_environment(env_id):
     
@@ -61,7 +63,10 @@ def circles_to_spheres(obstacle_list, radius):
         center_x, center_y, _ = circle  # Ignore the circle's radius
         sphere = create_sphere([center_x, center_y, 0], radius)  # Assuming z=0 for 2D visualization
         sphere_list.append(sphere)
-    return sphere_list
+        
+        sphere_list_export = [SphereObstacle(name=f"simpleSphere_{i}", content_dict=sphere_i) for i, sphere_i in enumerate(sphere_list)]
+        
+    return sphere_list_export
 
 # Example usage:
 # environment = build_environment(1)  # Choose the environment (0 for easy, 1 for medium, 2 for hard)
