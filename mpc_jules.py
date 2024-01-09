@@ -1,7 +1,7 @@
 import numpy as np
 import cvxpy as cp 
 import math
-
+WB = 1
 dt = 0.1
 # Taylor expansians to create convex functions for sine, cosine and tangent
 def cos_taylor(x, terms = 5):
@@ -55,9 +55,13 @@ def get_State_space_matrix(yaw_angle, steer_angle, WB, dt):
     return np.array(A), np.array(B)
 
 
-def get_next_state(A, B, x_current, u):
-    x_new = A*x_current + B*u
-    return x_new
+def get_next_state(x_current, v, steer_v):
+    x = x_current
+    x[0] += v*np.cos(x[2]) * dt
+    x[1] = x[1] + v*np.sin(x[2]) * dt
+    x[2] = x[2] + (v*np.tan(x[3])/ WB * dt)
+    x[3] = x[3] + steer_v*dt
+    return x
 
 def get_current_state(ob):
 
@@ -108,6 +112,7 @@ def calc_nearest_index(xcurrent, cx, cy, cyaw, pind):
 
     """
     max_index = len(cx) - 1
+
     x_current = xcurrent[0]
     y_current = xcurrent[1]
     # Search index number
@@ -138,6 +143,9 @@ def calc_nearest_index(xcurrent, cx, cy, cyaw, pind):
     if angle < 0:
         mind *= -1
     # Return the index of the nearest point on the path and the distance
+    if ind > max_index:
+        ind = max_index
+
     return ind
 
 
@@ -211,12 +219,12 @@ def mpc_ref_trajectory(NX, NU, T, traj_ref, Q, R, Rd, x_current, WB, dt):
     cost = 0.0
     constraints = []
 
-    for t in range(T):
+    for t in range(T/dt):
         cost += cp.quad_form(u[:, t], R)
 
         if t != 0:
             # Calculate the error in state 
-            cost += cp.quad_form(traj_ref[:, t] - x_current[[0, 1, 2, 3], t], Q)
+            cost += cp.quad_form(traj_ref[:, t] - x_current[:, t], Q)
 
 
         # Linear model
@@ -270,7 +278,7 @@ def mpc_ref_trajectory(NX, NU, T, traj_ref, Q, R, Rd, x_current, WB, dt):
     return o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel
 
 
-def mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt):
+def mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt, u, u_steer_vel):
     #NX   => number of state variables
     #NU   => number of input variables
     #T    => timer horizon
@@ -279,6 +287,10 @@ def mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt):
     #R    => Weight matrix for penalizing error in reference states
     #x_current     => current state x_current => [xc_pos, yc_pos, yaw_current, steering_angle_current]
     
+    if u is None or u_steer_vel is None:
+        u = 0
+        u_steer_vel = 0
+
     MAX_STEER = math.radians(180.0)  # maximum steering angle [rad]
     MIN_STEER = math.radians(-180.0) # minimum steering angel [rad]
     MAX_DSTEER = math.radians(100.0)  # maximum steering speed [rad/s]
@@ -300,10 +312,9 @@ def mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt):
 
         # Linear model
         # Get current yaw angle and steering angle from current state
-        yaw_c_angle = x[2, t]
-        steer_c_angle = x[3, t]
+        x_bar = get_next_state(x_current, u, u_steer_vel)
         # Calculate the a matrix and B matric
-        A, B = get_State_space_matrix(x_current[2], x_current[3], WB, dt)
+        A, B = get_State_space_matrix(x_bar[2], x_bar[3], WB, dt)
         # Calculate the new state and add it to the constraints
     
         constraints += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t]]
@@ -373,7 +384,8 @@ def run_mpc(ob, cx, cy, cyaw, csteer, pind, n):
     R  = np.diag([1, 1])
     Rd = np.diag([1, 1.0])
 
-
+    u_v = 0
+    u_steer_vel = 0
 
     #pind = previous index
     # step 1) Get current state
@@ -387,5 +399,5 @@ def run_mpc(ob, cx, cy, cyaw, csteer, pind, n):
     ref_point = get_ref_point(ref_index, cx, cy, cyaw, csteer)
 
 
-    o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel = mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt)
+    o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel = mpc_ref_point(NX, NU, T, ref_point, Q, R, Rd, x_current, WB, dt, u_v, u_steer_vel)
     return o_x, o_y, o_yaw, o_steer, u_v, u_steer_vel, index_near

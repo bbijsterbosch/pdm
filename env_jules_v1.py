@@ -79,9 +79,9 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         obs_pos.append((x,y,rad))
     
     
-    cx, cy, cyaw, ck = main_2d(obs_pos)
+    # cx, cy, cyaw, ck = main_2d(obs_pos)
     
-    csteer = np.arctan(ck)
+    # csteer = np.arctan(ck)
     # csteer = list(csteer)
     
     cx = cx_bas
@@ -97,6 +97,8 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
 
     for i in range(n_steps):
         ob, *_ = env.step(action)
+        # print(ob['robot_0']['joint_state'].keys())
+        # u_v = ob['r?obot_0']['joint_state']['']
         ox, oy, o_yaw, o_steer, u_v, u_steer_vel, index_near = mpc.run_mpc(ob, cx, cy, cyaw, csteer, pind, n)
         pind = index_near
         action = np.array([u_v[0], o_yaw[0]])
