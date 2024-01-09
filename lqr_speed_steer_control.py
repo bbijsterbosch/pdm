@@ -303,7 +303,7 @@ def lqr_run(cx, cy, cyaw, ck, s, goal):
         plt.ylabel("curvature [1/m]")
 
         plt.show()
-    return 
+    return v, yaw
 
 
 if __name__ == '__main__':

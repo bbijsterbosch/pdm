@@ -4,6 +4,7 @@ import sys
 import pathlib
 import os
 import mpc_jules as mpc
+import time
 sys.path.append(str(pathlib.Path(__file__).parent))
 
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
@@ -83,7 +84,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     cx, cy, cyaw, ck, s = global_path_planner_run()
     
     goal = goal_jules_v2.goal1Dict["desired_position"]
-    lqr_run(cx, cy, cyaw, ck, s, (goal[0],goal[1]))
+    v, yaw = lqr_run(cx, cy, cyaw, ck, s, [goal[0],goal[1]])
 
 
     csteer = np.arctan(ck)
@@ -101,14 +102,16 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     n = 20
 
     for i in range(n_steps):
+        action = np.array([v[i], (yaw[i+1]-yaw[i])/0.1])
         ob, *_ = env.step(action)
+        time.sleep(0.1)
         #ox, oy, o_yaw, o_steer, u_v, u_steer_vel, index_near = mpc.run_mpc(ob, cx, cy, cyaw, csteer, pind, n)
         #pind = index_near
         #action = np.array([u_v[0], o_yaw[0]])
-        print(f'action: {action}')
-        if ob['robot_0']['joint_state']['steering'] > 0.2:
-            action[1] = 0
-        history.append(ob)
+        # print(f'action: {action}')
+        # if ob['robot_0']['joint_state']['steering'] > 0.2:
+        #     action[1] = 0
+        # history.append(ob)
     env.close()
     return history
 
