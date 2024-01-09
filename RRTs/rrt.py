@@ -204,12 +204,14 @@ class RRT:
         plt.pause(0.01)
 
     @staticmethod
-    def plot_circle(x, y, size, color="-b"):  # pragma: no cover
+    def plot_circle(x, y, size, color="-k"):  # pragma: no cover
         deg = list(range(0, 360, 5))
         deg.append(0)
         xl = [x + size * math.cos(np.deg2rad(d)) for d in deg]
         yl = [y + size * math.sin(np.deg2rad(d)) for d in deg]
-        plt.plot(xl, yl, color)
+        plt.plot(xl, yl, color, marker='o', markersize=3)  # Modify this line for marker and size
+        plt.fill(xl, yl, color)  # Fill the circle with color
+        # plt.plot(xl, yl, color)
 
     @staticmethod
     def get_nearest_node_index(node_list, rnd_node):

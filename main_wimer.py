@@ -4,7 +4,6 @@ import sys
 import pathlib
 import os
 import mpc_jules as mpc
-import time
 sys.path.append(str(pathlib.Path(__file__).parent))
 
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
@@ -24,9 +23,6 @@ from real_enviroment.goal_jules_v2 import goal_pos
 
 #For the local path planner lqr
 from lqr_speed_steer_control import lqr_run
-
-# For the obstacles
-import three_environments
 
 def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     robots = [
@@ -50,15 +46,9 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     vel0 = np.array([0.0, 0.0, 0.0])
     ob = env.reset(pos=pos0, vel=vel0)
     
-    # # add walls
-    # for sphere_i in sphere_list_export:
-    #     env.add_obstacle(sphere_i)
-        
-    # Add the ostacles
-    environment = three_environments.build_environment(env_id = 1)  # Choose the environment (0 for easy, 1 for medium, 2 for hard)
-    converted_spheres = three_environments.circles_to_spheres(environment, radius=0.4)  
-    for sphere in converted_spheres:
-        env.add_obstacle(sphere)
+    # add walls
+    for sphere_i in sphere_list_export:
+        env.add_obstacle(sphere_i)
 
     # add goal
     env.add_goal(goal1)
@@ -93,7 +83,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     cx, cy, cyaw, ck, s = global_path_planner_run()
     
     goal = goal_jules_v2.goal1Dict["desired_position"]
-    v, yaw = lqr_run(cx, cy, cyaw, ck, s, [goal[0],goal[1]])
+    lqr_run(cx, cy, cyaw, ck, s, (goal[0],goal[1]))
 
 
     csteer = np.arctan(ck)
@@ -111,11 +101,10 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     n = 20
 
     for i in range(n_steps):
-        action = np.array([v[i], (yaw[i+1]-yaw[i])/0.1])
         ob, *_ = env.step(action)
-        ox, oy, o_yaw, o_steer, u_v, u_steer_vel, index_near = mpc.run_mpc(ob, cx, cy, cyaw, csteer, pind, n)
-        pind = index_near
-        action = np.array([u_v[0], o_yaw[0]])
+        #ox, oy, o_yaw, o_steer, u_v, u_steer_vel, index_near = mpc.run_mpc(ob, cx, cy, cyaw, csteer, pind, n)
+        #pind = index_near
+        #action = np.array([u_v[0], o_yaw[0]])
         print(f'action: {action}')
         if ob['robot_0']['joint_state']['steering'] > 0.2:
             action[1] = 0

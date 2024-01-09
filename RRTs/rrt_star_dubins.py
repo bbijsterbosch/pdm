@@ -14,6 +14,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 from RRTs import dubins_path_planner
 from RRTs.rrt_star import RRTStar
+from RRTs.rrt import RRT
 from RRTs.plot import plot_arrow
 
 show_animation = True
@@ -36,7 +37,7 @@ class RRTStarDubins(RRTStar):
 
     def __init__(self, start, goal, obstacle_list, rand_area,
                  goal_sample_rate=10,
-                 max_iter=500,
+                 max_iter=300,
                  connect_circle_dist=50.0,
                  robot_radius=1.0,
                  ):
@@ -60,8 +61,8 @@ class RRTStarDubins(RRTStar):
         self.connect_circle_dist = connect_circle_dist
 
         self.curvature = 1.0  # for dubins path
-        self.goal_yaw_th = np.deg2rad(1.0)
-        self.goal_xy_th = 0.5
+        self.goal_yaw_th = np.deg2rad(40.0) # was 1.0
+        self.goal_xy_th = 0.5 # was 0.5
         self.robot_radius = robot_radius
 
     def planning(self, animation=True, search_until_max_iter=True):
@@ -116,13 +117,16 @@ class RRTStarDubins(RRTStar):
             if node.parent:
                 plt.plot(node.path_x, node.path_y, "-g")
 
+        # for (ox, oy, size) in self.obstacle_list:
+        #     plt.plot(ox, oy, "ok", ms=30 * size)
+            
         for (ox, oy, size) in self.obstacle_list:
-            plt.plot(ox, oy, "ok", ms=30 * size)
+            RRT.plot_circle(ox, oy, size)
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis([-2, 15, -2, 15])
-        plt.grid(True)
+        plt.axis([-2, 32, -2, 32])
+        plt.grid(False)
         self.plot_start_goal_arrow()
         plt.pause(0.01)
 
@@ -181,13 +185,21 @@ class RRTStarDubins(RRTStar):
         for (i, node) in enumerate(self.node_list):
             if self.calc_dist_to_goal(node.x, node.y) <= self.goal_xy_th:
                 goal_indexes.append(i)
-
+        
         # angle check
         final_goal_indexes = []
-        for i in goal_indexes:
-            if abs(self.node_list[i].yaw - self.end.yaw) <= self.goal_yaw_th:
-                final_goal_indexes.append(i)
+        for i in goal_indexes:    
+            yaw_diff = abs(self.node_list[i].yaw - self.end.yaw)
+            
+            # Ensure the angle is between 0 and 2*pi
+            yaw_diff = yaw_diff % (2 * math.pi)
 
+            # Convert angles greater than pi to their equivalent within 0 to pi
+            if yaw_diff > math.pi:
+                yaw_diff = yaw_diff - 2 * math.pi
+                                
+            if yaw_diff <= self.goal_yaw_th:
+                final_goal_indexes.append(i)
         if not final_goal_indexes:
             return None
 
@@ -195,11 +207,10 @@ class RRTStarDubins(RRTStar):
         for i in final_goal_indexes:
             if self.node_list[i].cost == min_cost:
                 return i
-
+        
         return None
 
     def generate_final_course(self, goal_index):
-        print("final")
         path = [[self.end.x, self.end.y]]
         node = self.node_list[goal_index]
         while node.parent:
@@ -227,7 +238,7 @@ def rrt_star_dubins_run(obstacle1, goal_pos, start_pos):
     if show_animation:  # pragma: no cover
         rrtstar_dubins.draw_graph()
         plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-        plt.grid(True)
+        plt.grid(False)
         plt.pause(0.001)
 
         plt.show()

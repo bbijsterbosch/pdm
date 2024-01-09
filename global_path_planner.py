@@ -1,6 +1,4 @@
-import math
 import numpy as np
-import bisect
 import sys
 import pathlib
 import matplotlib.pyplot as plt
@@ -11,6 +9,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent))
 from RRTs import rrt_star_dubins
 import cubic_spline_planner
 from RRTs.rrt import RRT
+from three_environments import build_environment
 
 def RRT_star_Dubins(obstacleList, start, goal):
     
@@ -20,32 +19,44 @@ def RRT_star_Dubins(obstacleList, start, goal):
     obstacleList = obstacleList
       # [x,y,size(radius)]
 
+    # show the RRT search or not
     show_animation = True
 
-    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
+    # calculate the path using RRT Start Dubins
+    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[0.0, 30.0], obstacle_list=obstacleList)
     path = rrtstar_dubins.planning(animation=show_animation)
 
+    # flip the path so it goes from start to finish
     path_arr = np.array(path)
+    path_arr = np.flip(path_arr, axis=0)
 
     # Draw final path
     if show_animation:  # pragma: no cover
         rrtstar_dubins.draw_graph()
         plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-        plt.grid(True)
+        plt.grid(False)
         plt.pause(0.001)
 
         # plt.show()
     
     return path_arr
 
-def cubic_splines(path_arr, obstacleList):
+def cubic_splines(path_arr, obstacleList, env_id):
     
-    first = path_arr[np.shape(path_arr)[0]-1]
-    last = path_arr[0]
-    path_arr = path_arr[::40]
-    path_arr = np.append(path_arr, [first], axis=0)
-    # np.append(path_arr,last)
-    # print(f'\nthe path: {path_arr}\n')
+    finish = path_arr[np.shape(path_arr)[0]-1]
+    path_rrt = path_arr
+    rrt_x = path_rrt[:,0]
+    rrt_y = path_rrt[:,1]
+    
+    if env_id == 0:
+        path_arr = path_arr[::40]
+    elif env_id == 1:
+        path_arr = path_arr[::40]
+    else:
+        path_arr = path_arr[::40]
+    
+    path_arr = np.append(path_arr, [finish], axis=0)
+    # print(f'The path: {path_arr}\n')
     
     
     print("\nRunning CubicSpline\n")
@@ -65,7 +76,7 @@ def cubic_splines(path_arr, obstacleList):
         ryaw.append(sp.calc_yaw(i_s))
         rk.append(sp.calc_curvature(i_s))
     
-    ryaw = [yaw + np.pi for yaw in ryaw]
+    # ryaw = [yaw + np.pi for yaw in ryaw]
     
     plot_ryaw = ryaw[::10]
     plotx = rx[::10]
@@ -75,12 +86,14 @@ def cubic_splines(path_arr, obstacleList):
     for idx, K in enumerate(rk):
         if K > 1:
             print(f'K at {len(rx)-idx} is larger than 1: {K}\n')
-            idx_wrong_K = np.append(idx_wrong_K, idx)
+            idx_wrong_K.append(idx)
+            
+    if np.shape(idx_wrong_K)[0] > 0:
+        print(f'Indexes of wrong Ks: {idx_wrong_K}\n')
+    else:
+        print(f'All curvatures satisfy the curvature constraints!\n')
     
     print(f'Number of points: {np.shape(rx)[0]}\n')
-    
-    print(f'Indexes of wrong Ks: {idx_wrong_K}\n')
-        
     
     spline_points = np.zeros((len(rx),2))
     for i in range(len(rx)):
@@ -92,13 +105,15 @@ def cubic_splines(path_arr, obstacleList):
         print("No collision detected. Spline path is safe.\n")
 
     plt.subplots(1)
-    plt.plot(x, y, "xb", label="Data points")
-    plt.plot(rx, ry, "-r", label="Cubic spline path")
+    # plt.plot(x, y, "xb", label="Data points")
+    plt.plot(rx, ry, "-b", label="Cubic spline path")
+    plt.plot(rrt_x, rrt_y, "-r", label="RRT-star Dubins path")
     plt.quiver(plotx, ploty, np.cos(plot_ryaw), np.sin(plot_ryaw), color='g', units='xy', scale=5, width=0.03, label='Yaw')
     for idx in idx_wrong_K:
-        plt.scatter(rx[idx],ry[idx], "-r", label="Turn too sharp")
-    plt.grid(True)
-    plt.axis("equal")
+        plt.scatter(rx[idx],ry[idx], c="black", label="Turn too sharp")
+    plt.grid(False)
+    # plt.axis("equal")
+    plt.axis([-2, 32, -2, 32])
     plt.xlabel("x[m]")
     plt.ylabel("y[m]")
     plt.legend()
@@ -108,44 +123,33 @@ def cubic_splines(path_arr, obstacleList):
 
     plt.show()
     
-    return rx, ry, ryaw, rk
+    return rx, ry, ryaw, rk, s
 
 
     
-def main():
+def global_path_planner_run():
     
-    # Set Initial parameters
-    start = [0.0, 0.0, np.deg2rad(90.0)]
-    goal = [14.0, 4.0, np.deg2rad(90.0)]
+    # select environment. 0 = easy, 1 = medium, 2 = hard
+    env_id = 1
     
-    obstacleList = [(4,5,1),
-                (4,1,1),
-                (4,3,1), 
-                (4,7,1) , 
-                (4,-1,1),
-                (4,-3,1),
-                (0,14,1),
-                (2,14,1),
-                (4,14,1),
-                (6,14,1),
-                (8,14,1),
-                (10,14,1),
-                (12,14,1),
-                (14,14,1),
-                (16,14,1),
-                (10,12,1),
-                (10,10,1),
-                (10,8,1),
-                (10,6,1),
-                (10,4,1),
-                ]
+    # set start and goal locationis
+    if env_id == 0 or env_id == 1:
+        start = [0.0, 0.0, np.deg2rad(90.0)]
+        goal = [28.0, 28.0, np.deg2rad(90.0)]
+    elif env_id == 2:
+        start = [0.0, 0.0, np.deg2rad(90.0)]
+        goal = [0.0, 26.0, np.deg2rad(180.0)]   
     
+    # retreive the obstacles of the environment
+    obstacleList = build_environment(env_id) 
+    
+    # use RRT star Dubins for the path planning
     path = RRT_star_Dubins(obstacleList, start, goal)
     
-    cx, cy, cyaw, ck = cubic_splines(path, obstacleList)
+    # use cubic splines to smoothen the path
+    cx, cy, cyaw, ck, s = cubic_splines(path, obstacleList, env_id)
     
-    
-    return cx, cy, cyaw, ck
+    return cx, cy, cyaw, ck, s
 
 if __name__ == '__main__':
-    main()
+    global_path_planner_run()
