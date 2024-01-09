@@ -471,7 +471,7 @@ def main_2d(obstacleList):  # pragma: no cover
             RRT.plot_circle(ox, oy, size)
 
     plt.show()
-    return rx, ry, ryaw, rk
+    return rx, ry, ryaw, rk, s
     
     
 

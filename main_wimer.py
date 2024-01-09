@@ -67,6 +67,8 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     ob, *_ = env.step(action)
     obst_dict = ob['robot_0']['FullSensor']['obstacles']
     
+
+    
     obstacles = [obstacle for obstacle in obst_dict]
     obs_pos = []
 
@@ -77,7 +79,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         obs_pos.append((x,y,rad))
     
     
-    cx, cy, cyaw, ck, s = main_2d(obs_pos)
+    cx, cy, cyaw, ck = main_2d(obs_pos)
     
     csteer = np.arctan(ck)
     # csteer = list(csteer)

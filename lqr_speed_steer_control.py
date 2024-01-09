@@ -265,14 +265,9 @@ def calc_speed_profile(cyaw, target_speed):
     return speed_profile
 
 
-def main():
+def lqr_run(cx, cy, cyaw, ck, s):
     print("LQR steering control tracking start!!")
-    ax = [0.0, 6.0, 12.5, 10.0, 17.5, 20.0, 25.0]
-    ay = [0.0, -3.0, -5.0, 6.5, 3.0, 0.0, 0.0]
-    goal = [ax[-1], ay[-1]]
 
-    cx, cy, cyaw, ck, s = cubic_spline_planner.calc_spline_course(
-        ax, ay, ds=0.1)
     target_speed = 10.0 / 3.6  # simulation parameter km/h -> m/s
 
     sp = calc_speed_profile(cyaw, target_speed)
