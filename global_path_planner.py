@@ -117,9 +117,9 @@ def global_path_planner_run():
     
     # Set Initial parameters
     start = [0.0, 0.0, np.deg2rad(90.0)]
-    goal = [14.0, 4.0, np.deg2rad(90.0)]
+    goal = [28.0, 28.0, np.deg2rad(90.0)]
     
-    obstacleList = build_environment(env_id = 1) 
+    obstacleList = build_environment(env_id=0) 
     
     path = RRT_star_Dubins(obstacleList, start, goal)
     
