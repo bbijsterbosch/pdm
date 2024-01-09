@@ -358,31 +358,31 @@ def check_collision(spline_points, obstacles):
 
 def main_2d(obstacleList):  # pragma: no cover
     
-    print("Start RRT star with Dubins planning")
+    # print("Start RRT star with Dubins planning")
 
-    # ====Search Path with RRT====
-    obstacleList = obstacleList
-      # [x,y,size(radius)]
+    # # ====Search Path with RRT====
+    # obstacleList = obstacleList
+    #   # [x,y,size(radius)]
 
-    # Set Initial parameters
-    start = [0.0, 0.0, np.deg2rad(0.0)]
-    goal = [14.0, 4.0, np.deg2rad(90.0)]
+    # # Set Initial parameters
+    # start = [0.0, 0.0, np.deg2rad(0.0)]
+    # goal = [14.0, 4.0, np.deg2rad(90.0)]
 
-    show_animation = True
+    # show_animation = True
 
-    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
-    path = rrtstar_dubins.planning(animation=show_animation)
+    # rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
+    # path = rrtstar_dubins.planning(animation=show_animation)
 
-    path_arr = np.array(path)
+    # path_arr = np.array(path)
 
-    # Draw final path
-    if show_animation:  # pragma: no cover
-        rrtstar_dubins.draw_graph()
-        plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-        plt.grid(True)
-        plt.pause(0.001)
+    # # Draw final path
+    # if show_animation:  # pragma: no cover
+    #     rrtstar_dubins.draw_graph()
+    #     plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
+    #     plt.grid(True)
+    #     plt.pause(0.001)
 
-        # plt.show()
+    #     # plt.show()
     
     """
     
@@ -415,7 +415,7 @@ def main_2d(obstacleList):  # pragma: no cover
         ryaw.append(sp.calc_yaw(i_s))
         rk.append(sp.calc_curvature(i_s))
     
-    ryaw = [yaw + np.pi for yaw in ryaw]
+    # ryaw = [yaw + np.pi for yaw in ryaw]
     
     plot_ryaw = ryaw[::10]
     plotx = rx[::10]
