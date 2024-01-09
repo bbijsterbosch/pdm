@@ -113,7 +113,7 @@ def cubic_splines(path_arr, obstacleList):
 
 
     
-def main():
+def global_path_planner_run():
     
     # Set Initial parameters
     start = [0.0, 0.0, np.deg2rad(90.0)]
@@ -123,10 +123,10 @@ def main():
     
     path = RRT_star_Dubins(obstacleList, start, goal)
     
-    cx, cy, cyaw, ck = cubic_splines(path, obstacleList)
+    cx, cy, cyaw, ck, s = cubic_splines(path, obstacleList)
     
     
-    return cx, cy, cyaw, ck
+    return cx, cy, cyaw, ck, s
 
 if __name__ == '__main__':
-    main()
+    global_path_planner_run()
