@@ -8,26 +8,44 @@ import matplotlib.pyplot as plt
 
 def build_environment(env_id):
     
+    # the easy environment
     if env_id == 0:
         
-        obstacleList = [(4,12,2), (14,8,2), (15,24,2), (26,15,2)]
-        
+        obstacleList = [(10,10,2), (15,24,2), (26,15,2)]
         
         return obstacleList
+    
+    # the medium environment
     elif env_id ==1:
         
         obstacleList = []
         
-        for i in range(-1,16):
-            obstacle = (2*i, 31, 1)
+        for i in range(-1,12):
+            obstacle = (6,2*i,1)
             obstacleList.append(obstacle)
         
-        
+        for i in range(3,17):
+            obstacle = (20,2*i,1)
+            obstacleList.append(obstacle)    
         
         return obstacleList
+    
+    # the hard environment
     elif env_id == 2:
         
         obstacleList = []
+        
+        for i in range(-1,7):
+            obstacle = (7,2*i,1)
+            obstacleList.append(obstacle)
+        
+        for i in range(3,10):
+            obstacle = (20,2*i,1)
+            obstacleList.append(obstacle)    
+            
+        for i in range(-1,11):
+            obstacle = (2*i, 21, 1)
+            obstacleList.append(obstacle)
         
         
         
