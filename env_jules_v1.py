@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import pathlib
 import os
-
+import mpc_jules as mpc
 sys.path.append(str(pathlib.Path(__file__).parent))
 
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
@@ -11,7 +11,8 @@ from real_enviroment.goal_jules_v2 import goal1
 from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 from urdfenvs.sensors.full_sensor import FullSensor
 from real_enviroment.create_all_walls import sphere_list_export
-
+from cubic_spline_planner import main_2d
+from reference_path import csteer_bas, cx_bas, cy_bas, cyaw_bas
 #For the RRT's
 from RRTs.RRT_dubins import RRT_dubins_run
 from RRTs.rrt_star_dubins import rrt_star_dubins_run
@@ -77,12 +78,29 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         rad = obst_dict[i]['size'][0]
         obs_pos.append((x,y,rad))
     
-    print(obs_pos)
-    RRT_dubins_run(obs_pos, goal_pos, pos0)
-    rrt_star_dubins_run(obs_pos, goal_pos, pos0)
+    
+    cx, cy, cyaw, ck = main_2d(obs_pos)
+    
+    csteer = np.arctan(ck)
+    # csteer = list(csteer)
+    
+    cx = cx_bas
+    cy = cy_bas
+    cyaw = cyaw_bas
+    csteer = csteer_bas
+    # print(f'cx: {cx}')
+    # print(f' cy: {cy}')
+    # print(f'cyaw: {cyaw}')
+    # print(f'csteer: {csteer}')
+    pind = 0
+    n = 20
 
     for i in range(n_steps):
         ob, *_ = env.step(action)
+        ox, oy, o_yaw, o_steer, u_v, u_steer_vel, index_near = mpc.run_mpc(ob, cx, cy, cyaw, csteer, pind, n)
+        pind = index_near
+        action = np.array([u_v[0], o_yaw[0]])
+        print(f'action: {action}')
         if ob['robot_0']['joint_state']['steering'] > 0.2:
             action[1] = 0
         history.append(ob)

@@ -356,7 +356,7 @@ def check_collision(spline_points, obstacles):
     return False  # No collisions detected
 
 
-def main_2d():  # pragma: no cover
+def main_2d(obstacleList):  # pragma: no cover
     
     print("Start rrt star with dubins planning")
 
@@ -487,7 +487,7 @@ def main_2d():  # pragma: no cover
             RRT.plot_circle(ox, oy, size)
 
     plt.show()
-
+    return rx, ry, ryaw, rk
     
     
 
