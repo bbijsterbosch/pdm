@@ -1,8 +1,6 @@
 """
 Path planning Sample Code with RRT with Dubins path
 
-author: AtsushiSakai(@Atsushi_twi)
-
 """
 import copy
 import math
@@ -44,8 +42,8 @@ class RRTDubins(RRT):
 
     def __init__(self, start, goal, obstacle_list, rand_area,
                  goal_sample_rate= 5,
-                 max_iter=1000,
-                 robot_radius=0.05
+                 max_iter=300,
+                 robot_radius=1.0
                  ):
         """
         Setting Parameter
@@ -66,7 +64,7 @@ class RRTDubins(RRT):
         self.obstacle_list = obstacle_list
 
         self.curvature = 1.0  # for dubins path
-        self.goal_yaw_th = np.deg2rad(1)
+        self.goal_yaw_th = np.deg2rad(10)
         self.goal_xy_th = 0.5
         self.robot_radius = robot_radius
 
@@ -116,15 +114,19 @@ class RRTDubins(RRT):
             plt.plot(rnd.x, rnd.y, "^k")
         for node in self.node_list:
             if node.parent:
-                plt.plot(node.path_x, node.path_y, "-g")
+                plt.plot(node.path_x, node.path_y, "-y")
 
+        # for (ox, oy, size) in self.obstacle_list:
+        #     plt.plot(ox, oy, "ok", ms=30 * size)
+            
         for (ox, oy, size) in self.obstacle_list:
-            plt.plot(ox, oy, "ok", ms=30 * size)
+            RRT.plot_circle(ox, oy, size)
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis([-2, 15, -2, 15])
-        plt.grid(True)
+        plt.axis([-2, 32, -2, 32])
+        plt.grid(False)
+        plt.title(f'max_iter = {self.max_iter}')
         self.plot_start_goal_arrow()
         plt.pause(0.01)
 

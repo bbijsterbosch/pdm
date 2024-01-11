@@ -115,7 +115,7 @@ class RRTStarDubins(RRTStar):
             plt.plot(rnd.x, rnd.y, "^k")
         for node in self.node_list:
             if node.parent:
-                plt.plot(node.path_x, node.path_y, "-g")
+                plt.plot(node.path_x, node.path_y, "-y")
 
         # for (ox, oy, size) in self.obstacle_list:
         #     plt.plot(ox, oy, "ok", ms=30 * size)
@@ -127,6 +127,7 @@ class RRTStarDubins(RRTStar):
         plt.plot(self.end.x, self.end.y, "xr")
         plt.axis([-2, 32, -2, 32])
         plt.grid(False)
+        plt.title(f'max_iter = {self.max_iter}')
         self.plot_start_goal_arrow()
         plt.pause(0.01)
 

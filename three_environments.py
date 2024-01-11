@@ -42,19 +42,19 @@ def build_environment(env_id):
             obstacle = (7,2*i,1)
             obstacleList.append(obstacle)
         
-        for i in range(3,10):
+        for i in range(3,11):
             obstacle = (20,2*i,1)
             obstacleList.append(obstacle)    
             
         for i in range(-1,11):
-            obstacle = (2*i, 21, 1)
+            obstacle = (2*i, 22, 1)
             obstacleList.append(obstacle)
         
         
         
         return obstacleList
     else:
-        print(f'Please choose between environments 0 (easy), 1 (medium), 2 (hard)!')
+        raise Exception("Please choose between environments 0 (easy), 1 (medium), 2 (hard)!")
         
         
 def circles_to_spheres(obstacle_list, radius):
@@ -72,4 +72,3 @@ def circles_to_spheres(obstacle_list, radius):
 # environment = build_environment(1)  # Choose the environment (0 for easy, 1 for medium, 2 for hard)
 # converted_spheres = circles_to_spheres(environment, radius=0.4)  # Convert circles to spheres with a radius of 0.4
 
-# Now you have a list of spheres in the format suitable for visualization.

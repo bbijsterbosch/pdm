@@ -199,7 +199,7 @@ class RRT:
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
         plt.axis("equal")
-        plt.axis([-2, 15, -2, 15])
+        plt.axis([-2, 32, -2, 32])
         plt.grid(True)
         plt.pause(0.01)
 
@@ -209,8 +209,8 @@ class RRT:
         deg.append(0)
         xl = [x + size * math.cos(np.deg2rad(d)) for d in deg]
         yl = [y + size * math.sin(np.deg2rad(d)) for d in deg]
-        plt.plot(xl, yl, color, marker='o', markersize=3)  # Modify this line for marker and size
-        plt.fill(xl, yl, color)  # Fill the circle with color
+        plt.plot(xl, yl, color, marker='o', markersize=0.5)  # Modify this line for marker and size
+        # plt.fill(xl, yl, color)  # Fill the circle with color
         # plt.plot(xl, yl, color)
 
     @staticmethod

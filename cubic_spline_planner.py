@@ -292,6 +292,10 @@ class CubicSpline2D:
         dy = self.sy.calc_first_derivative(s)
         ddy = self.sy.calc_second_derivative(s)
         k = (ddy * dx - ddx * dy) / ((dx ** 2 + dy ** 2)**(3 / 2))
+        
+        # Limit curvature to 1
+        # k = min(1.0, k)
+        
         return k
 
     def calc_yaw(self, s):
@@ -350,40 +354,14 @@ def check_collision(spline_points, obstacles):
         for obstacle in obstacles:
             obstacle_x, obstacle_y, obstacle_radius = obstacle
             distance = np.sqrt((point[0] - obstacle_x) ** 2 + (point[1] - obstacle_y) ** 2)
-            if distance <= obstacle_radius:
+            if distance + 1 <= obstacle_radius:
                 print(f'point: {point} is causing a collision with distance {distance}')
                 return True  # Collision detected
     return False  # No collisions detected
 
 
 def main_2d(obstacleList):  # pragma: no cover
-    
-    # print("Start RRT star with Dubins planning")
-
-    # # ====Search Path with RRT====
-    # obstacleList = obstacleList
-    #   # [x,y,size(radius)]
-
-    # # Set Initial parameters
-    # start = [0.0, 0.0, np.deg2rad(0.0)]
-    # goal = [14.0, 4.0, np.deg2rad(90.0)]
-
-    # show_animation = True
-
-    # rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
-    # path = rrtstar_dubins.planning(animation=show_animation)
-
-    # path_arr = np.array(path)
-
-    # # Draw final path
-    # if show_animation:  # pragma: no cover
-    #     rrtstar_dubins.draw_graph()
-    #     plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-    #     plt.grid(True)
-    #     plt.pause(0.001)
-
-    #     # plt.show()
-    
+        
     """
     
     QUBIC SPLINE PLANNER:
@@ -446,26 +424,26 @@ def main_2d(obstacleList):  # pragma: no cover
     plt.plot(rx, ry, "-r", label="Cubic spline path")
     plt.quiver(plotx, ploty, np.cos(plot_ryaw), np.sin(plot_ryaw), color='g', units='xy', scale=5, width=0.03, label='Yaw')
     for idx in idx_wrong_K:
-        plt.scatter(rx[idx],ry[idx], "-r", label="Turn too sharp")
+        plt.scatter(rx[idx],ry[idx], "-r")
     plt.grid(True)
     plt.axis("equal")
     plt.xlabel("x[m]")
     plt.ylabel("y[m]")
     plt.legend()
 
-    # plt.subplots(1)
-    # plt.plot(s, [np.rad2deg(iyaw) for iyaw in ryaw], "-r", label="yaw")
-    # plt.grid(True)
-    # plt.legend()
-    # plt.xlabel("line length[m]")
-    # plt.ylabel("yaw angle[deg]")
+    plt.subplots(1)
+    plt.plot(s, [np.rad2deg(iyaw) for iyaw in ryaw], "-r", label="yaw")
+    plt.grid(True)
+    plt.legend()
+    plt.xlabel("line length[m]")
+    plt.ylabel("yaw angle[deg]")
 
-    # plt.subplots(1)
-    # plt.plot(s, rk, "-r", label="curvature")
-    # plt.grid(True)
-    # plt.legend()
-    # plt.xlabel("line length[m]")
-    # plt.ylabel("curvature [1/m]")
+    plt.subplots(1)
+    plt.plot(s, rk, "-r", label="curvature")
+    plt.grid(True)
+    plt.legend()
+    plt.xlabel("line length[m]")
+    plt.ylabel("curvature [1/m]")
     
     for (ox, oy, size) in obstacleList:
             RRT.plot_circle(ox, oy, size)
