@@ -126,7 +126,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         
         odelta, oa = None, None
         oa, odelta, ox, oy, oyaw, ov = mpc.iterative_linear_mpc_control(
-                xref, ob, x0, dref, oa, odelta)
+                xref, ob, x0, dref, oa, odelta, obs_pos)
 
         di, ai = 0.0, 0.0
         if odelta is not None:
