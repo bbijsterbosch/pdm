@@ -127,7 +127,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
 
 
     
-def global_path_planner_run():
+def global_path_planner_run(env_id):
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
     env_id = 1
