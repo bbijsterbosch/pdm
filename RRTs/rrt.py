@@ -182,7 +182,7 @@ class RRT:
                 self.plot_circle(rnd.x, rnd.y, self.robot_radius, '-r')
         for node in self.node_list:
             if node.parent:
-                plt.plot(node.path_x, node.path_y, "-g")
+                plt.plot(node.path_x, node.path_y, "-y")
 
         for (ox, oy, size) in self.obstacle_list:
             self.plot_circle(ox, oy, size)
@@ -198,9 +198,10 @@ class RRT:
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis("equal")
+        # plt.axis("equal")
+        plt.title(f'max_iter = {self.max_iter}')
         plt.axis([-2, 32, -2, 32])
-        plt.grid(True)
+        plt.grid(False)
         plt.pause(0.01)
 
     @staticmethod

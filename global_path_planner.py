@@ -83,7 +83,7 @@ def rrt_star_run(obstacle1, goal_pos, start_pos):
         goal=goal_pos,
         rand_area=[0, 30],
         obstacle_list=obstacle_list,
-        expand_dis=6,
+        expand_dis=3,
         robot_radius=1.0)
     path = rrt_star.planning(animation=show_animation)
     
@@ -99,9 +99,9 @@ def rrt_star_run(obstacle1, goal_pos, start_pos):
         # Draw final path
         if show_animation:
             rrt_star.draw_graph()
-            plt.plot([x for (x, y) in path], [y for (x, y) in path], 'r--')
-            plt.grid(True)
-            plt.show()
+            plt.plot([x for (x, y) in path], [y for (x, y) in path], 'r')
+            plt.grid(False)
+            # plt.show()
     return path_arr
 
 def cubic_splines(path_arr, obstacleList, env_id):
@@ -111,12 +111,9 @@ def cubic_splines(path_arr, obstacleList, env_id):
     rrt_x = path_rrt[:,0]
     rrt_y = path_rrt[:,1]
     
-    # if env_id == 0:
-    #     path_arr = path_arr[::40]
-    # elif env_id == 1:
-    #     path_arr = path_arr[::40]
-    # else:
-    #     path_arr = path_arr[::40]
+
+    path_arr = path_arr[::40]
+
     
     # path_arr = np.append(path_arr, [finish], axis=0)
     # print(f'The path: {path_arr}\n')
@@ -142,7 +139,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
     # Update the path based on limited curvature
     for i, curvature in enumerate(rk):
         if curvature > 1.0:
-            print(f'CURVATURE LARGER THAN 1!\n')
+            print(f'CURVATURE {i} IS LARGER THAN 1!\n')
             rk[i] = 1.0  # Limit curvature to 1.0
             rx[i], ry[i] = sp.calc_position(s[i])  # Update path point based on limited curvature
 
@@ -170,6 +167,16 @@ def cubic_splines(path_arr, obstacleList, env_id):
     for i in range(len(rx)):
         spline_points[i] = (rx[i],ry[i])
         
+    # calculate length of the path  
+    length = 0.0
+    for i in range(1, len(rx)):
+        # Calculate distance between consecutive points and add to total length
+        dx = rx[i] - rx[i - 1]
+        dy = ry[i] - ry[i - 1]
+        length += np.sqrt(dx ** 2 + dy ** 2)
+    print(f"Total path length: {length:.2f} meters")
+
+        
     if cubic_spline_planner.check_collision(spline_points, obstacleList):
         print("Collision detected! Adjust spline generation.\n")
     else:
@@ -183,6 +190,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
     for idx in idx_wrong_K:
         plt.scatter(rx[idx],ry[idx], c="black")
     plt.grid(False)
+    plt.title(f'Total path length: {length:.2f} meters')
     # plt.axis("equal")
     plt.axis([-2, 32, -2, 32])
     # plt.xlabel("x[m]")
@@ -198,10 +206,10 @@ def cubic_splines(path_arr, obstacleList, env_id):
 
 
     
-def global_path_planner_run():
+def global_path_planner_run(env_id):
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
-    env_id = 1
+    # env_id = 1
     
     # set start and goal locationis
     if env_id == 0 or env_id == 1:
@@ -215,15 +223,30 @@ def global_path_planner_run():
     obstacleList = build_environment(env_id) 
     
     # use RRT star Dubins for the path planning
-    # path = RRT_star_Dubins(obstacleList, start, goal)
+    path = RRT_star_Dubins(obstacleList, start, goal)
     # path = RRT_dubins_run(obstacleList, start, goal)
-    path = rrt_star_run(obstacleList, goal, start)
+    # path = rrt_star_run(obstacleList, goal, start)
+    
+    print(path)
     
     
     # use cubic splines to smoothen the path
     cx, cy, cyaw, ck, s = cubic_splines(path, obstacleList, env_id)
     
+    
+    # calculate the difference in curvature
+    k_diffs = []
+    for i in range(len(ck)):
+        diff_k = ck[i] - ck[i-1]
+        k_diffs = np.append(k_diffs, diff_k**6)
+        
+    av_k_diff = np.average(k_diffs,axis=0)
+    print(f'average curvature difference: {av_k_diff}')
+        
+        
+
+    
     return cx, cy, cyaw, ck, s
 
 if __name__ == '__main__':
-    global_path_planner_run()
+    global_path_planner_run(env_id = 1)

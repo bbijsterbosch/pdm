@@ -30,13 +30,13 @@ class RRTStar(RRT):
                  goal,
                  obstacle_list,
                  rand_area,
-                 expand_dis=30.0,
+                 expand_dis=6.0,
                  path_resolution=1.0,
-                 goal_sample_rate=20,
-                 max_iter=300,
-                 connect_circle_dist=50.0,
-                 search_until_max_iter=False,
-                 robot_radius=0.0):
+                 goal_sample_rate=10,
+                 max_iter=500,
+                 connect_circle_dist=20.0,
+                 search_until_max_iter=True,
+                 robot_radius=1.0):
         """
         Setting Parameter
 
@@ -92,6 +92,7 @@ class RRTStar(RRT):
                 last_index = self.search_best_goal_node()
                 if last_index is not None:
                     return self.generate_final_course(last_index)
+
 
         print("reached max iteration")
 
@@ -243,6 +244,9 @@ class RRTStar(RRT):
             if node.parent == parent_node:
                 node.cost = self.calc_new_cost(parent_node, node)
                 self.propagate_cost_to_leaves(node)
+
+
+
 
 
 def main():
