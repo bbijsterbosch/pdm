@@ -46,7 +46,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
         "urdf-env-v0",
         dt=0.1, robots=robots, render=render
     )
-    action = np.array([0, 0])
+    action = np.array([1, 0])
     pos0 = np.array([-13.0, -13.0, np.pi*0.5])
     vel0 = np.array([0.0, 0.0, 0.0])
     ob = env.reset(pos=pos0, vel=vel0)
@@ -94,14 +94,13 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
 
-    # cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1)
-    cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
+    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1)
+    # cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
 
     # print(f"THIS IS THE CX {cx}", "\n \n")
     # print(f"THIS IS THE Cy {cy}", "\n \n")
     # print(f"THIS IS THE Cyaw {cyaw}", "\n \n")
     # print(f"THIS IS THE Ck {ck}", "\n \n")
-    print(ob['robot_0']['FullSensor']['obstacles'].keys())
 
     goal = [cx[-1], cy[-1]]
 
@@ -143,7 +142,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
                                       ob['robot_0']['FullSensor']['obstacles'][50]['position'][1],
                                       ob['robot_0']['FullSensor']['obstacles'][50]['size'][0], 0.4]])
         
-
+        print(dynamic_obst)
         delta = ob['robot_0']['joint_state']['steering']
         v = ob['robot_0']['joint_state']['forward_velocity'][0]
 
@@ -164,13 +163,15 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
             di, ai = odelta[0], oa[0]
             state = mpc.State(ob)
 
-        
         vi = v + ai*dt
         delta_dot = (di - delta) / dt
         action = np.array([vi, delta_dot])
+        
+        
+        
 
         if mpc.check_goal(state, goal, target_ind, len(cx)):
-            print("Goal")
+            print("Goal Reached!!")
             break
 
         print(f'action: {action}')

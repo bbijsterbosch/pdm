@@ -10,18 +10,18 @@ import dccp
 
 NX = 4  # x = x, y, v, yaw
 NU = 2  # a = [accel, steer]
-T = 7  # Horizon length
+T = 8  # Horizon length
 
-R = np.diag([0.2, 0.4])  # input cost matrix
-Rd = np.diag([0.5, 1.0])  # input difference cost matrix
-Q = np.diag([0.5, 0.5, 0.5, 0.5])  # state cost matrix
+R = np.diag([0.2, 0.2])  # input cost matrix
+Rd = np.diag([0.5, 1])  # input difference cost matrix
+Q = np.diag([1, 1, 0.5, 0.5])  # state cost matrix
 Qf = Q  # state final matrix
 GOAL_DIS = 1 # goal distance
 STOP_SPEED = 0.5 / 3.6  # stop speed
 MAX_TIME = 500 # max simulation time
 
 # iterative paramter
-MAX_ITER = 4  # Max iteration
+MAX_ITER = 1  # Max iteration
 DU_TH = 0.1  # iteration finish param
 
 TARGET_SPEED = 10.0 / 3.6  # [m/s] target speed
@@ -31,7 +31,7 @@ DT = 0.1  # [s] time tick
 
 # Vehicle parameters
 LENGTH = 1.2*0.3  # [m]
-WIDTH = 0.3*0.3  # [m]
+WIDTH = 0.494  # [m]
 BACKTOWHEEL = 0.2*0.3  # [m]
 WHEEL_LEN = 0.1*0.3  # [m]
 WHEEL_WIDTH = 0.2*0.3  # [m]
@@ -212,14 +212,15 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
         A, B, C = get_linear_model_matrix(
             xbar[2, t], xbar[3, t], dref[0, t])
         constraints += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t] + C]
-        constraints += [cvxpy.norm(u[:,-1], "inf") <= [0.5,0.5]]
+        # constraints += [cvxpy.norm(u[:,-1], "inf") == [0,0]]
 
         
         for obs in x_obs:
-            obs = np.array([[obs[0] + (obs[3] * DT * t)],
+            obs = np.array([[obs[0]],
                            [obs[1]],
-                           [obs[3]]]).reshape(-1)
-            constraints += [cvxpy.norm(x[:2,t] - obs[:2]) >= 2*obs[2] + 1]
+                           [obs[2]]]).reshape(-1)
+            
+            constraints += [cvxpy.norm(x[:2,t] - obs[:2]) >= 2*obs[2]+0.5]
             
         # constraints += [A_cc @ x[:,t] >= b_cc1]
         if t < (T - 1):
