@@ -10,21 +10,21 @@ import dccp
 
 NX = 4  # x = x, y, v, yaw
 NU = 2  # a = [accel, steer]
-T = 3   # Horizon length
+T = 7  # Horizon length
 
 R = np.diag([0.2, 0.4])  # input cost matrix
 Rd = np.diag([0.5, 1.0])  # input difference cost matrix
-Q = np.diag([1.0, 1.0, 0.5, 0.5])  # state cost matrix
+Q = np.diag([0.5, 0.5, 0.5, 0.5])  # state cost matrix
 Qf = Q  # state final matrix
 GOAL_DIS = 1 # goal distance
 STOP_SPEED = 0.5 / 3.6  # stop speed
 MAX_TIME = 500 # max simulation time
 
 # iterative paramter
-MAX_ITER = 2  # Max iteration
+MAX_ITER = 4  # Max iteration
 DU_TH = 0.1  # iteration finish param
 
-TARGET_SPEED = 12.0 / 3.6  # [m/s] target speed
+TARGET_SPEED = 10.0 / 3.6  # [m/s] target speed
 N_IND_SEARCH = 10  # Search index number
 
 DT = 0.1  # [s] time tick
@@ -197,7 +197,7 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
 
     cost = 0.0
     constraints = []
-
+    
     for t in range(T):
         cost += cvxpy.quad_form(u[:, t], R)
 
@@ -213,9 +213,14 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
             xbar[2, t], xbar[3, t], dref[0, t])
         constraints += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t] + C]
         constraints += [cvxpy.norm(u[:,-1], "inf") <= [0.5,0.5]]
-        for obs in x_obs:
-            constraints += [cvxpy.norm(x[:2,t]-obs[:2]) >= obs[2] + 1]
 
+        
+        for obs in x_obs:
+            obs = np.array([[obs[0] + (obs[3] * DT * t)],
+                           [obs[1]],
+                           [obs[3]]]).reshape(-1)
+            constraints += [cvxpy.norm(x[:2,t] - obs[:2]) >= 2*obs[2] + 1]
+            
         # constraints += [A_cc @ x[:,t] >= b_cc1]
         if t < (T - 1):
             cost += cvxpy.quad_form(u[:, t + 1] - u[:, t], Rd)

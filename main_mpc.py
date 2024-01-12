@@ -88,7 +88,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
 
     cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1)
     
-    
+    print(ob['robot_0']['FullSensor']['obstacles'].keys())
 
     goal = [cx[-1], cy[-1]]
 
@@ -103,14 +103,14 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
 
     for i in range(n_steps):
         ob, *_ = env.step(action)
-        dynamic_obst_pos1 = np.array([[ob['robot_0']['FullSensor']['obstacles'][30]['position'][0],
-                                      ob['robot_0']['FullSensor']['obstacles'][30]['position'][1],
-                                      ob['robot_0']['FullSensor']['obstacles'][30]['size'][0]],
-                                      [ob['robot_0']['FullSensor']['obstacles'][31]['position'][0],
-                                      ob['robot_0']['FullSensor']['obstacles'][31]['position'][1],
-                                      ob['robot_0']['FullSensor']['obstacles'][31]['size'][0]]])
+
+        dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][49]['position'][0],
+                                    ob['robot_0']['FullSensor']['obstacles'][49]['position'][1],
+                                      ob['robot_0']['FullSensor']['obstacles'][49]['size'][0], -0.4],
+                                      [ob['robot_0']['FullSensor']['obstacles'][50]['position'][0],
+                                      ob['robot_0']['FullSensor']['obstacles'][50]['position'][1],
+                                      ob['robot_0']['FullSensor']['obstacles'][50]['size'][0], 0.4]])
         
-        dynamic_obst_pos2 = ob['robot_0']['FullSensor']['obstacles'][31]
 
         delta = ob['robot_0']['joint_state']['steering']
         v = ob['robot_0']['joint_state']['forward_velocity'][0]
@@ -125,7 +125,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
         
         odelta, oa = None, None
         oa, odelta, ox, oy, oyaw, ov = mpc.iterative_linear_mpc_control(
-                xref, ob, x0, dref, oa, odelta, dynamic_obst_pos1)
+                xref, ob, x0, dref, oa, odelta, dynamic_obst)
 
         di, ai = 0.0, 0.0
         if odelta is not None:
