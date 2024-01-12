@@ -5,27 +5,29 @@ import numpy as np
 import sys
 import pathlib
 from angle import angle_mod
+import dccp
+
 
 NX = 4  # x = x, y, v, yaw
 NU = 2  # a = [accel, steer]
 T = 3   # Horizon length
 
-R = np.diag([0.04, 0.04])  # input cost matrix
+R = np.diag([0.2, 0.4])  # input cost matrix
 Rd = np.diag([0.5, 1.0])  # input difference cost matrix
 Q = np.diag([1.0, 1.0, 0.5, 0.5])  # state cost matrix
 Qf = Q  # state final matrix
 GOAL_DIS = 1 # goal distance
 STOP_SPEED = 0.5 / 3.6  # stop speed
-MAX_TIME = 1000 # max simulation time
+MAX_TIME = 500 # max simulation time
 
 # iterative paramter
 MAX_ITER = 2  # Max iteration
 DU_TH = 0.1  # iteration finish param
 
-TARGET_SPEED = 20.0 / 3.6  # [m/s] target speed
+TARGET_SPEED = 12.0 / 3.6  # [m/s] target speed
 N_IND_SEARCH = 10  # Search index number
 
-DT = 0.01  # [s] time tick
+DT = 0.1  # [s] time tick
 
 # Vehicle parameters
 LENGTH = 1.2*0.3  # [m]
@@ -150,7 +152,7 @@ def predict_motion(ob, x0, oa, od, xref):
     return xbar
 
 
-def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, stacic_obstacles):
+def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, x_obs1):
     """
     MPC control with updating operational point iteratively
     """
@@ -163,7 +165,7 @@ def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, stacic_obstacles):
     for i in range(MAX_ITER):
         xbar = predict_motion(ob, x0, oa, od, xref)
         poa, pod = oa[:], od[:]
-        oa, od, ox, oy, oyaw, ov = linear_mpc_control(xref, xbar, x0, dref, stacic_obstacles)
+        oa, od, ox, oy, oyaw, ov = linear_mpc_control(xref, xbar, x0, dref, x_obs1)
         du = sum(abs(oa - poa)) + sum(abs(od - pod))  # calc u change value
         if du <= DU_TH:
             break
@@ -173,7 +175,7 @@ def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, stacic_obstacles):
     return oa, od, ox, oy, oyaw, ov
 
 
-def linear_mpc_control(xref, xbar, x0, dref, stacic_obstacles):
+def linear_mpc_control(xref, xbar, x0, dref, x_obs):
     """
     linear mpc control
 
@@ -183,6 +185,13 @@ def linear_mpc_control(xref, xbar, x0, dref, stacic_obstacles):
     dref: reference steer angle
     """
 
+    A_cc = [[1,0,0,0],
+            [0,1,0,0],
+            [0,0,0,0],
+            [0,0,0,0]]
+
+    
+    
     x = cvxpy.Variable((NX, T + 1))
     u = cvxpy.Variable((NU, T))
 
@@ -192,13 +201,22 @@ def linear_mpc_control(xref, xbar, x0, dref, stacic_obstacles):
     for t in range(T):
         cost += cvxpy.quad_form(u[:, t], R)
 
+        # b_cc1 = np.array([[x_obs1[0]-2*x_obs1[2]],
+        #                   [x_obs1[1]-2*x_obs1[2]],
+        #                   [0],
+        #                   [0]]).reshape(-1)
+
         if t != 0:
             cost += cvxpy.quad_form(xref[:, t] - x[:, t], Q)
 
         A, B, C = get_linear_model_matrix(
             xbar[2, t], xbar[3, t], dref[0, t])
         constraints += [x[:, t + 1] == A @ x[:, t] + B @ u[:, t] + C]
+        constraints += [cvxpy.norm(u[:,-1], "inf") <= [0.5,0.5]]
+        for obs in x_obs:
+            constraints += [cvxpy.norm(x[:2,t]-obs[:2]) >= obs[2] + 1]
 
+        # constraints += [A_cc @ x[:,t] >= b_cc1]
         if t < (T - 1):
             cost += cvxpy.quad_form(u[:, t + 1] - u[:, t], Rd)
             constraints += [cvxpy.abs(u[1, t + 1] - u[1, t]) <=
@@ -226,9 +244,12 @@ def linear_mpc_control(xref, xbar, x0, dref, stacic_obstacles):
     constraints += [x[2, :] >= MIN_SPEED]
     constraints += [cvxpy.abs(u[0, :]) <= MAX_ACCEL]
     constraints += [cvxpy.abs(u[1, :]) <= MAX_STEER]
-
+    
     prob = cvxpy.Problem(cvxpy.Minimize(cost), constraints)
-    prob.solve(solver=cvxpy.ECOS, verbose=False)
+    print(dccp.is_dccp(prob))
+    print(prob.is_dcp())
+   
+    prob.solve(solver=cvxpy.ECOS, method="dccp", ep=1e-1, qcp=True)
 
     if prob.status == cvxpy.OPTIMAL or prob.status == cvxpy.OPTIMAL_INACCURATE:
         ox = get_nparray_from_matrix(x.value[0, :])
@@ -240,7 +261,13 @@ def linear_mpc_control(xref, xbar, x0, dref, stacic_obstacles):
 
     else:
         print("Error: Cannot solve mpc..")
-        oa, odelta, ox, oy, oyaw, ov = None, None, None, None, None, None
+        
+        ox = get_nparray_from_matrix(x.value[0, :])
+        oy = get_nparray_from_matrix(x.value[1, :])
+        ov = get_nparray_from_matrix(x.value[2, :])
+        oyaw = get_nparray_from_matrix(x.value[3, :])
+        oa = get_nparray_from_matrix(u.value[0, :])
+        odelta = get_nparray_from_matrix(u.value[1, :])
 
     return oa, odelta, ox, oy, oyaw, ov
 
