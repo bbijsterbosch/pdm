@@ -82,7 +82,7 @@ def rrt_star_run(obstacle1, goal_pos, start_pos):
     rrt_star = RRTStar(
         start=start_pos,
         goal=goal_pos,
-        rand_area=[-15., 15.],
+        rand_area=[0, 30],
         obstacle_list=obstacle_list,
         expand_dis=5,
         robot_radius=2.0)
@@ -181,20 +181,20 @@ def cubic_splines(path_arr, obstacleList, env_id):
     else:
         print("No collision detected. Spline path is safe.\n")
 
-    plt.subplots(1)
-    plt.plot(rrt_x, rrt_y, "-b", label="RRT-star Dubins path")
-    plt.plot(rx, ry, "-r", label="Cubic spline path")
-    for idx in idx_wrong_K:
-        plt.scatter(rx[idx],ry[idx], c="black")
-    plt.grid(False)
-    plt.title(f'Total path length: {length:.2f} meters')
-    plt.axis([-2, 32, -2, 32])
-    plt.legend()
+    # plt.subplots(1)
+    # plt.plot(rrt_x, rrt_y, "-b", label="RRT-star Dubins path")
+    # plt.plot(rx, ry, "-r", label="Cubic spline path")
+    # for idx in idx_wrong_K:
+    #     plt.scatter(rx[idx],ry[idx], c="black")
+    # plt.grid(False)
+    # plt.title(f'Total path length: {length:.2f} meters')
+    # plt.axis([-2, 32, -2, 32])
+    # plt.legend()
     
-    for (ox, oy, size) in obstacleList:
-            RRT.plot_circle(ox, oy, size)
+    # for (ox, oy, size) in obstacleList:
+    #         RRT.plot_circle(ox, oy, size)
 
-    plt.show()
+    # plt.show()
     
     return rx, ry, ryaw, rk, s
 
@@ -223,7 +223,6 @@ def global_path_planner_run(env_id):
     # use cubic splines to smoothen the path
     cx, cy, cyaw, ck, s = cubic_splines(path, obstacleList, env_id)
     
-    
     # calculate the difference in curvature
     k_diffs = []
     for i in range(len(ck)):
@@ -245,7 +244,7 @@ if __name__ == '__main__':
     start_time = datetime.now()
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
-    global_path_planner_run(env_id = 0)
+    global_path_planner_run(env_id = 1)
     
     # stop the timer
     end_time = datetime.now()
