@@ -30,12 +30,12 @@ N_IND_SEARCH = 10  # Search index number
 DT = 0.1  # [s] time tick
 
 # Vehicle parameters
-LENGTH = 1.2  # [m]
-WIDTH = 0.3  # [m]
-BACKTOWHEEL = 0.2  # [m]
-WHEEL_LEN = 0.1  # [m]
-WHEEL_WIDTH = 0.2  # [m]
-TREAD = 0.7  # [m]
+LENGTH = 1.2*0.3  # [m]
+WIDTH = 0.3*0.3  # [m]
+BACKTOWHEEL = 0.2*0.3  # [m]
+WHEEL_LEN = 0.1*0.3  # [m]
+WHEEL_WIDTH = 0.2*0.3  # [m]
+TREAD = 0.7*0.3  # [m]
 WB = 1  # [m]
 
 MAX_STEER = np.deg2rad(45.0)  # maximum steering angle [rad]
@@ -221,7 +221,22 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
             cost += cvxpy.quad_form(u[:, t + 1] - u[:, t], Rd)
             constraints += [cvxpy.abs(u[1, t + 1] - u[1, t]) <=
                             MAX_DSTEER * DT]
+            
+        #Add the static obstacle constraints => Data structure obs_pos.append((x,y,rad))
+        for obstacle in stacic_obstacles:
+            Xpos_obstacle   = obstacle[0]
+            Ypos_obstacle   = obstacle[1]
+            radius_obstacle = obstacle[2]
+            # calculate distanc from obstacle i to vehicle position
+            safe_distance = radius_obstacle + 1/2*WB
+            # Define obstacle properties (center and radius)
+            obstacle_center = np.array([Xpos_obstacle,Ypos_obstacle])  # Replace x_o, y_o with actual values
+            
 
+            # Constraint to keep (x_i, y_i) outside the circular obstacle
+            constraints += [cvxpy.norm(cvxpy.vstack([x[0, t], x[1, t]]) - obstacle_center) >= safe_distance]
+
+ 
     cost += cvxpy.quad_form(xref[:, T] - x[:, T], Qf)
 
     constraints += [x[:, 0] == x0]
@@ -392,7 +407,6 @@ def plot_car(x, y, yaw, steer=0.0, cabcolor="-r", truckcolor="-k"):  # pragma: n
     plt.plot(np.array(rl_wheel[0, :]).flatten(),
              np.array(rl_wheel[1, :]).flatten(), truckcolor)
     plt.plot(x, y, "*")
-
 
 def check_goal(state, goal, tind, nind):
 
