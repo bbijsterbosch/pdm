@@ -349,12 +349,12 @@ def main_1d():
     plt.legend()
     plt.show()
     
-def check_collision(self, spline_points, obstacles):
+def check_collision(spline_points, obstacles):
     for point in spline_points:
         for obstacle in obstacles:
             obstacle_x, obstacle_y, obstacle_radius = obstacle
             distance = np.sqrt((point[0] - obstacle_x) ** 2 + (point[1] - obstacle_y) ** 2)
-            if distance + self.robot_radius <= obstacle_radius:
+            if distance + 1 <= obstacle_radius:
                 print(f'point: {point} is causing a collision with distance {distance}')
                 return True  # Collision detected
     return False  # No collisions detected
