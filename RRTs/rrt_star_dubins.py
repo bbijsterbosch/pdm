@@ -125,7 +125,7 @@ class RRTStarDubins(RRTStar):
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis([-2, 32, -2, 32])
+        plt.axis([-17, 17, -17, 17])
         plt.grid(False)
         plt.title(f'max_iter = {self.max_iter}')
         self.plot_start_goal_arrow()

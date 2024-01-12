@@ -39,13 +39,13 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
         dt=0.1, robots=robots, render=render
     )
     action = np.array([0, 0])
-    pos0 = np.array([0.0, 0.0, 0.0])
+    pos0 = np.array([-13.0, -13.0, np.pi*0.5])
     vel0 = np.array([0.0, 0.0, 0.0])
     ob = env.reset(pos=pos0, vel=vel0)
     
     # add walls
     environment = three_environments.build_environment(env_id = 1)  # Choose the environment (0 for easy, 1 for medium, 2 for hard)
-    converted_spheres = three_environments.circles_to_spheres(environment, radius=0.4)  
+    converted_spheres = three_environments.circles_to_spheres(environment)  
     
     for sphere in converted_spheres:
         env.add_obstacle(sphere)

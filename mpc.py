@@ -223,18 +223,6 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
                             MAX_DSTEER * DT]
             
         #Add the static obstacle constraints => Data structure obs_pos.append((x,y,rad))
-        for obstacle in stacic_obstacles:
-            Xpos_obstacle   = obstacle[0]
-            Ypos_obstacle   = obstacle[1]
-            radius_obstacle = obstacle[2]
-            # calculate distanc from obstacle i to vehicle position
-            safe_distance = radius_obstacle + 1/2*WB
-            # Define obstacle properties (center and radius)
-            obstacle_center = np.array([Xpos_obstacle,Ypos_obstacle])  # Replace x_o, y_o with actual values
-            
-
-            # Constraint to keep (x_i, y_i) outside the circular obstacle
-            constraints += [cvxpy.norm(cvxpy.vstack([x[0, t], x[1, t]]) - obstacle_center) >= safe_distance]
 
  
     cost += cvxpy.quad_form(xref[:, T] - x[:, T], Qf)
@@ -246,8 +234,7 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
     constraints += [cvxpy.abs(u[1, :]) <= MAX_STEER]
     
     prob = cvxpy.Problem(cvxpy.Minimize(cost), constraints)
-    print(dccp.is_dccp(prob))
-    print(prob.is_dcp())
+    
    
     prob.solve(solver=cvxpy.ECOS, method="dccp", ep=1e-1, qcp=True)
 

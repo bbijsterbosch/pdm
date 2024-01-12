@@ -22,7 +22,7 @@ def RRT_dubins_run(obstacles1, goal_pos, start_pos):
     
     show_animation = True
 
-    rrt_dubins = RRTDubins(goal_pos, start_pos, obstacle_list=obstacleList, rand_area=[0.0, 30.0])
+    rrt_dubins = RRTDubins(goal_pos, start_pos, obstacle_list=obstacleList, rand_area=[-15., 15.0])
     path = rrt_dubins.planning(animation=show_animation)
     
     # flip the path so it goes from start to finish
@@ -51,7 +51,7 @@ def RRT_star_Dubins(obstacleList, start, goal):
     show_animation = False
 
     # calculate the path using RRT Start Dubins
-    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[0.0, 30.0], obstacle_list=obstacleList)
+    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-15., 15.], obstacle_list=obstacleList)
     path = rrtstar_dubins.planning(animation=show_animation)
 
     # flip the path so it goes from start to finish
@@ -82,7 +82,7 @@ def rrt_star_run(obstacle1, goal_pos, start_pos):
     rrt_star = RRTStar(
         start=start_pos,
         goal=goal_pos,
-        rand_area=[0, 30],
+        rand_area=[-15., 15.],
         obstacle_list=obstacle_list,
         expand_dis=5,
         robot_radius=2.0)
@@ -206,8 +206,8 @@ def global_path_planner_run(env_id):
     
     # set start and goal locationis
     if env_id == 0 or env_id == 1:
-        start = [0.0, 0.0, np.deg2rad(90.0)]
-        goal = [28.0, 28.0, np.deg2rad(90.0)]
+        start = [-13., -13., np.deg2rad(45.0)]
+        goal = [13.0, 13.0, np.deg2rad(90.0)]
     elif env_id == 2:
         start = [0.0, 0.0, np.deg2rad(90.0)]
         goal = [0.0, 26.0, np.deg2rad(180.0)]   

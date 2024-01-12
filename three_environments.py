@@ -23,12 +23,12 @@ def build_environment(env_id):
         
         obstacleList = []
         
-        for i in range(-1,12):
-            obstacle = (6,2*i,1)
+        for i in range(-15,8):
+            obstacle = (-5, i, 0.5)
             obstacleList.append(obstacle)
         
-        for i in range(3,17):
-            obstacle = (20,2*i,1)
+        for i in range(-8,15):
+            obstacle = (5, i, 0.5)
             obstacleList.append(obstacle)    
         
         return obstacleList
@@ -57,10 +57,10 @@ def build_environment(env_id):
         raise Exception("Please choose between environments 0 (easy), 1 (medium), 2 (hard)!")
         
         
-def circles_to_spheres(obstacle_list, radius):
+def circles_to_spheres(obstacle_list):
     sphere_list = []
     for circle in obstacle_list:
-        center_x, center_y, _ = circle  # Ignore the circle's radius
+        center_x, center_y, radius = circle  # Ignore the circle's radius
         sphere = create_sphere([center_x, center_y, 0], radius)  # Assuming z=0 for 2D visualization
         sphere_list.append(sphere)
         
