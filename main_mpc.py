@@ -19,9 +19,9 @@ import mpc
 from real_enviroment.goal_jules_v2 import goal_pos
 from global_path_planner import global_path_planner_run
 import three_environments
-
+from dynamic_obstacle import dynamicSphereObst1, dynamicSphereObst2
 dt = 0.1
-def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
+def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
@@ -36,7 +36,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     ]
     env = gym.make(
         "urdf-env-v0",
-        dt=0.01, robots=robots, render=render
+        dt=0.1, robots=robots, render=render
     )
     action = np.array([0, 0])
     pos0 = np.array([0.0, 0.0, 0.0])
@@ -51,8 +51,10 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         env.add_obstacle(sphere)
 
     # add goal
+    
     env.add_goal(goal1)
-
+    env.add_obstacle(dynamicSphereObst1)
+    env.add_obstacle(dynamicSphereObst2)
     # add sensor
     sensor = FullSensor(['position'], ['position', 'size'], variance=0.0)
     env.add_sensor(sensor, [0])
@@ -71,9 +73,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     action = np.zeros(env.n())
     ob, *_ = env.step(action)
     obst_dict = ob['robot_0']['FullSensor']['obstacles']
-    
 
-    
     obstacles = [obstacle for obstacle in obst_dict]
     obs_pos = []
 
@@ -88,21 +88,12 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
 
     cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1)
     
-    # csteer = np.arctan(ck)
-    # csteer = list(csteer)
     
-    # cx = cx_bas[::-1]
-    # cy = cy_bas[::-1]
-    # cyaw = cyaw_bas[::-1]
-    # csteer = csteer_bas[::-1]
-    # ck = np.tan(csteer)
 
     goal = [cx[-1], cy[-1]]
 
-    # print(f'cx: {cx}')
-    # print(f' cy: {cy}')
-    # print(f'cyaw: {cyaw}')
-    # print(f'csteer: {csteer}')
+    
+
     pind = 0
     n = 20
     state = mpc.State(ob)
@@ -112,6 +103,14 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
 
     for i in range(n_steps):
         ob, *_ = env.step(action)
+        dynamic_obst_pos1 = np.array([[ob['robot_0']['FullSensor']['obstacles'][30]['position'][0],
+                                      ob['robot_0']['FullSensor']['obstacles'][30]['position'][1],
+                                      ob['robot_0']['FullSensor']['obstacles'][30]['size'][0]],
+                                      [ob['robot_0']['FullSensor']['obstacles'][31]['position'][0],
+                                      ob['robot_0']['FullSensor']['obstacles'][31]['position'][1],
+                                      ob['robot_0']['FullSensor']['obstacles'][31]['size'][0]]])
+        
+        dynamic_obst_pos2 = ob['robot_0']['FullSensor']['obstacles'][31]
 
         delta = ob['robot_0']['joint_state']['steering']
         v = ob['robot_0']['joint_state']['forward_velocity'][0]
@@ -126,7 +125,7 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         
         odelta, oa = None, None
         oa, odelta, ox, oy, oyaw, ov = mpc.iterative_linear_mpc_control(
-                xref, ob, x0, dref, oa, odelta)
+                xref, ob, x0, dref, oa, odelta, dynamic_obst_pos1)
 
         di, ai = 0.0, 0.0
         if odelta is not None:
