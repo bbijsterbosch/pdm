@@ -5,13 +5,14 @@ import pathlib
 import os
 sys.path.append(str(pathlib.Path(__file__).parent))
 
+
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
 from real_enviroment.goal_jules_v2 import goal1
 from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 from urdfenvs.sensors.full_sensor import FullSensor
 from real_enviroment.create_all_walls import sphere_list_export
 from cubic_spline_planner import main_2d
-from reference_path import csteer_bas, cx_bas, cy_bas, cyaw_bas
+from reference_path import cx_bas, cy_bas, cyaw_bas, ck_bas
 #For the RRT's
 from RRTs.RRT_dubins import RRT_dubins_run
 from RRTs.rrt_star_dubins import rrt_star_dubins_run
@@ -20,6 +21,13 @@ from real_enviroment.goal_jules_v2 import goal_pos
 from global_path_planner import global_path_planner_run
 import three_environments
 from dynamic_obstacle import dynamicSphereObst1, dynamicSphereObst2
+from urdfenvs.urdf_common.urdf_env import UrdfEnv
+
+
+
+
+
+
 dt = 0.1
 def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     robots = [
@@ -34,7 +42,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
             steering_links=['front_right_steer_joint', 'front_left_steer_joint'],
         )
     ]
-    env = gym.make(
+    env: UrdfEnv = gym.make(
         "urdf-env-v0",
         dt=0.1, robots=robots, render=render
     )
@@ -86,14 +94,38 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
 
-    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1)
-    
+    # cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1)
+    cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
+
+    # print(f"THIS IS THE CX {cx}", "\n \n")
+    # print(f"THIS IS THE Cy {cy}", "\n \n")
+    # print(f"THIS IS THE Cyaw {cyaw}", "\n \n")
+    # print(f"THIS IS THE Ck {ck}", "\n \n")
     
 
     goal = [cx[-1], cy[-1]]
 
     
+    #Adding path in the environment
+    path_positions = []
+    for i in range(0, len(cx), 10):
 
+        xpath_i = cx[i]
+        ypath_i = cy[i]
+        # print(xpath_i, ypath_i)
+        path_positions.append([xpath_i, ypath_i, 0])
+        env.add_visualization(shape_type="cylinder", size=[0.10, 0.005], rgba_color=np.array([1, 0, 0, 1]))  # Small cylinder
+    
+
+  
+    env.update_visualizations(positions=path_positions)
+    
+
+
+
+
+    ########################
+        
     pind = 0
     n = 20
     state = mpc.State(ob)

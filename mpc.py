@@ -239,6 +239,7 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
     prob.solve(solver=cvxpy.ECOS, method="dccp", ep=1e-1, qcp=True)
 
     if prob.status == cvxpy.OPTIMAL or prob.status == cvxpy.OPTIMAL_INACCURATE:
+        print("No error: Solved the mpc....", '\n')
         ox = get_nparray_from_matrix(x.value[0, :])
         oy = get_nparray_from_matrix(x.value[1, :])
         ov = get_nparray_from_matrix(x.value[2, :])
