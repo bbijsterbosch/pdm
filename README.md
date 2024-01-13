@@ -33,5 +33,5 @@ cd pdm
 python3 main.py
 ```
 
-[!IMPORTANT]
-The local planner will start only when the user has closed the plots of the local planner.
+> [!IMPORTANT]
+> The local planner will start only when the user has closed the plots of the local planner.
