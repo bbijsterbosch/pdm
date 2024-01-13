@@ -29,7 +29,9 @@ git clone git@github.com:bbijsterbosch/pdm.git
 ```
 3. Run the main
 ```console
+cd pdm
 python3 main.py
 ```
+
 [!IMPORTANT]
 The local planner will start only when the user has closed the plots of the local planner.
