@@ -14,7 +14,7 @@ T = 8  # Horizon length
 
 R = np.diag([0.2, 0.2])  # input cost matrix
 Rd = np.diag([0.5, 1])  # input difference cost matrix
-Q = np.diag([1, 1, 0.5, 0.5])  # state cost matrix
+Q = np.diag([0.3, 0.3, 0.5, 0.5])  # state cost matrix
 Qf = Q  # state final matrix
 GOAL_DIS = 1 # goal distance
 STOP_SPEED = 0.5 / 3.6  # stop speed
@@ -242,7 +242,7 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
     prob = cvxpy.Problem(cvxpy.Minimize(cost), constraints)
     
    
-    prob.solve(solver=cvxpy.ECOS, method="dccp", ep=1e-1, qcp=True)
+    prob.solve(solver=cvxpy.SCS, method="dccp", ep=1e-1, qcp=True)
 
     if prob.status == cvxpy.OPTIMAL or prob.status == cvxpy.OPTIMAL_INACCURATE:
         print("No error: Solved the mpc....", '\n')

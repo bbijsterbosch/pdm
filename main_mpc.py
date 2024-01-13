@@ -62,7 +62,6 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     
     env.add_goal(goal1)
     env.add_obstacle(dynamicSphereObst1)
-    env.add_obstacle(dynamicSphereObst2)
     # add sensor
     sensor = FullSensor(['position'], ['position', 'size'], variance=0.0)
     env.add_sensor(sensor, [0])
@@ -137,10 +136,8 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
 
         dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][49]['position'][0],
                                     ob['robot_0']['FullSensor']['obstacles'][49]['position'][1],
-                                      ob['robot_0']['FullSensor']['obstacles'][49]['size'][0], -0.4],
-                                      [ob['robot_0']['FullSensor']['obstacles'][50]['position'][0],
-                                      ob['robot_0']['FullSensor']['obstacles'][50]['position'][1],
-                                      ob['robot_0']['FullSensor']['obstacles'][50]['size'][0], 0.4]])
+                                      ob['robot_0']['FullSensor']['obstacles'][49]['size'][0], -0.4]
+                                      ])
         
         print(dynamic_obst)
         delta = ob['robot_0']['joint_state']['steering']
