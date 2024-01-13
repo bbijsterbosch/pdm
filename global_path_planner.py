@@ -48,7 +48,7 @@ def RRT_star_Dubins(obstacleList, start, goal):
       # [x,y,size(radius)]
 
     # show the RRT search or not
-    show_animation = False
+    show_animation = True
 
     # calculate the path using RRT Start Dubins
     rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-15., 15.], obstacle_list=obstacleList)

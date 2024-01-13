@@ -10,11 +10,11 @@ import dccp
 
 NX = 4  # x = x, y, v, yaw
 NU = 2  # a = [accel, steer]
-T = 15  # Horizon length
+T = 10 # Horizon length
 
-R = np.diag([1.5, 1.5])  # input cost matrix
-Rd = np.diag([0.5, 0.5])  # input difference cost matrix
-Q = np.diag([1, 1, 0.5, 0.5])  # state cost matrix
+R = np.diag([0.5, 0.5])  # input cost matrix
+Rd = np.diag([0.5, 1])  # input difference cost matrix
+Q = np.diag([0.5, 0.5, 0.5, 0.5])  # state cost matrix
 Qf = Q  # state final matrix
 GOAL_DIS = 1 # goal distance
 STOP_SPEED = 0.5 / 3.6  # stop speed
@@ -214,12 +214,12 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
         # constraints += [cvxpy.norm(u[:,-1], "inf") == [0,0]]
 
         
-        for obs in x_obs:
-            obs = np.array([[obs[0]],
-                           [obs[1]],
-                           [obs[2]]]).reshape(-1)
+        # for obs in x_obs:
+        obs = np.array([[0],
+                        [0],
+                        [0.5]]).reshape(-1)
             
-            constraints += [cvxpy.norm(x[:2,t] - obs[:2]) >= 2*obs[2]+0.5]
+        constraints += [cvxpy.norm(x[:2,t] - obs[:2]) >= 2*obs[2]+0.5]
             
         # constraints += [A_cc @ x[:,t] >= b_cc1]
         if t < (T - 1):
@@ -241,7 +241,7 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
     prob = cvxpy.Problem(cvxpy.Minimize(cost), constraints)
     
    
-    prob.solve(solver=cvxpy.SCS, method="dccp", ep=1e-3, qcp=True)
+    prob.solve(solver = cvxpy.SCS, method="dccp", ep=1e-2)
 
     if prob.status == cvxpy.OPTIMAL or prob.status == cvxpy.OPTIMAL_INACCURATE:
         print("No error: Solved the mpc....", '\n')

@@ -28,7 +28,7 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 
-dt = 0.2
+dt = 0.1
 def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     robots = [
         BicycleModel(
@@ -44,7 +44,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     ]
     env: UrdfEnv = gym.make(
         "urdf-env-v0",
-        dt=0.2, robots=robots, render=render
+        dt=0.1, robots=robots, render=render
     )
     action = np.array([1, 0])
     pos0 = np.array([-13.0, -13.0, np.pi*0.5])
@@ -80,7 +80,6 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     action = np.zeros(env.n())
     ob, *_ = env.step(action)
     obst_dict = ob['robot_0']['FullSensor']['obstacles']
-
     obstacles = [obstacle for obstacle in obst_dict]
     obs_pos = []
 
@@ -95,7 +94,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
 
     cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1)
     # cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
-
+    cyaw = mpc.smooth_yaw(cyaw)
     # print(f"THIS IS THE CX {cx}", "\n \n")
     # print(f"THIS IS THE Cy {cy}", "\n \n")
     # print(f"THIS IS THE Cyaw {cyaw}", "\n \n")
@@ -134,9 +133,9 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     for i in range(n_steps):
         ob, *_ = env.step(action)
 
-        dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][49]['position'][0],
-                                    ob['robot_0']['FullSensor']['obstacles'][49]['position'][1],
-                                      ob['robot_0']['FullSensor']['obstacles'][49]['size'][0], -0.4]
+        dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][54]['position'][0],
+                                    ob['robot_0']['FullSensor']['obstacles'][54]['position'][1],
+                                      ob['robot_0']['FullSensor']['obstacles'][54]['size'][0], -0.4]
                                       ])
         
         print(dynamic_obst)
@@ -146,7 +145,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
         x0 = [state.x, state.y, state.v, state.yaw]
         
 
-        cyaw = mpc.smooth_yaw(cyaw)
+        
 
         xref, target_ind, dref = mpc.calc_ref_trajectory(
                 state, cx, cy, cyaw, ck, sp, dl, target_ind)

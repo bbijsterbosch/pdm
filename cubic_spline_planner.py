@@ -9,10 +9,6 @@ import sys
 import pathlib
 import matplotlib.pyplot as plt
 
-
-sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))  # root dir
-sys.path.append(str(pathlib.Path(__file__).parent.parent))
-from RRTs import rrt_star_dubins
 from RRTs.rrt import RRT
 
 
@@ -28,26 +24,7 @@ class CubicSpline1D:
         in ascending order.
     y : list
         y coordinates for data points
-
-    Examples
-    --------
-    You can interpolate 1D data points.
-
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> x = np.arange(5)
-    >>> y = [1.7, -6, 5, 6.5, 0.0]
-    >>> sp = CubicSpline1D(x, y)
-    >>> xi = np.linspace(0.0, 5.0)
-    >>> yi = [sp.calc_position(x) for x in xi]
-    >>> plt.plot(x, y, "xb", label="Data points")
-    >>> plt.plot(xi, yi , "r", label="Cubic spline interpolation")
-    >>> plt.grid(True)
-    >>> plt.legend()
-    >>> plt.show()
-
-    .. image:: cubic_spline_1d.png
-
+    ----------
     """
 
     def __init__(self, x, y):
@@ -188,53 +165,7 @@ class CubicSpline2D:
         x coordinates for data points.
     y : list
         y coordinates for data points.
-
-    Examples
-    --------
-    You can interpolate a 2D data points.
-
-    >>> import matplotlib.pyplot as plt
-    >>> x = [-2.5, 0.0, 2.5, 5.0, 7.5, 3.0, -1.0]
-    >>> y = [0.7, -6, 5, 6.5, 0.0, 5.0, -2.0]
-    >>> ds = 0.1  # [m] distance of each interpolated points
-    >>> sp = CubicSpline2D(x, y)
-    >>> s = np.arange(0, sp.s[-1], ds)
-    >>> rx, ry, ryaw, rk = [], [], [], []
-    >>> for i_s in s:
-    ...     ix, iy = sp.calc_position(i_s)
-    ...     rx.append(ix)
-    ...     ry.append(iy)
-    ...     ryaw.append(sp.calc_yaw(i_s))
-    ...     rk.append(sp.calc_curvature(i_s))
-    >>> plt.subplots(1)
-    >>> plt.plot(x, y, "xb", label="Data points")
-    >>> plt.plot(rx, ry, "-r", label="Cubic spline path")
-    >>> plt.grid(True)
-    >>> plt.axis("equal")
-    >>> plt.xlabel("x[m]")
-    >>> plt.ylabel("y[m]")
-    >>> plt.legend()
-    >>> plt.show()
-
-    .. image:: cubic_spline_2d_path.png
-
-    >>> plt.subplots(1)
-    >>> plt.plot(s, [np.rad2deg(iyaw) for iyaw in ryaw], "-r", label="yaw")
-    >>> plt.grid(True)
-    >>> plt.legend()
-    >>> plt.xlabel("line length[m]")
-    >>> plt.ylabel("yaw angle[deg]")
-
-    .. image:: cubic_spline_2d_yaw.png
-
-    >>> plt.subplots(1)
-    >>> plt.plot(s, rk, "-r", label="curvature")
-    >>> plt.grid(True)
-    >>> plt.legend()
-    >>> plt.xlabel("line length[m]")
-    >>> plt.ylabel("curvature [1/m]")
-
-    .. image:: cubic_spline_2d_curvature.png
+    ----------
     """
 
     def __init__(self, x, y):
@@ -333,22 +264,6 @@ def calc_spline_course(x, y, ds=0.1):
 
     return rx, ry, ryaw, rk, s
 
-
-def main_1d():
-    print("CubicSpline1D test")
-    import matplotlib.pyplot as plt
-    x = np.arange(5)
-    y = [1.7, -6, 5, 6.5, 0.0]
-    sp = CubicSpline1D(x, y)
-    xi = np.linspace(0.0, 5.0)
-
-    plt.plot(x, y, "xb", label="Data points")
-    plt.plot(xi, [sp.calc_position(x) for x in xi], "r",
-             label="Cubic spline interpolation")
-    plt.grid(True)
-    plt.legend()
-    plt.show()
-    
 def check_collision(spline_points, obstacles):
     for point in spline_points:
         for obstacle in obstacles:
@@ -369,11 +284,8 @@ def main_2d(obstacleList):  # pragma: no cover
     """
     
     first = path_arr[np.shape(path_arr)[0]-1]
-    last = path_arr[0]
     path_arr = path_arr[::40]
     path_arr = np.append(path_arr, [first], axis=0)
-    # np.append(path_arr,last)
-    # print(f'\nthe path: {path_arr}\n')
     
     
     print("\n! Running CubicSpline !\n")
@@ -392,8 +304,6 @@ def main_2d(obstacleList):  # pragma: no cover
         ry.append(iy)
         ryaw.append(sp.calc_yaw(i_s))
         rk.append(sp.calc_curvature(i_s))
-    
-    # ryaw = [yaw + np.pi for yaw in ryaw]
     
     plot_ryaw = ryaw[::10]
     plotx = rx[::10]
@@ -454,7 +364,6 @@ def main_2d(obstacleList):  # pragma: no cover
     
 
 if __name__ == '__main__':
-    # main_1d()
     obstacleList = [(4,5,1),
                 (4,1,1),
                 (4,3,1), 
