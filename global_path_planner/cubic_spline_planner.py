@@ -7,7 +7,7 @@ import numpy as np
 import bisect
 import matplotlib.pyplot as plt
 
-from RRTs.rrt import RRT
+from global_path_planner.rrt import RRT
 
 
 class CubicSpline1D:

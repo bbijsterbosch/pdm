@@ -2,9 +2,7 @@ import matplotlib.pyplot as plt
 import cvxpy
 import math
 import numpy as np
-import sys
-import pathlib
-from angle import angle_mod
+from global_path_planner.angle import angle_mod
 import dccp
 
 

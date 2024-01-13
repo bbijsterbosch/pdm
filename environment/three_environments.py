@@ -1,11 +1,8 @@
 import math
 import numpy as np
-import bisect
-import sys
-import pathlib
 import matplotlib.pyplot as plt
 
-from real_enviroment.wall_of_spheres import create_sphere
+from environment.wall_of_spheres import create_sphere
 from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 
 

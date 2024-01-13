@@ -2,34 +2,26 @@ import gymnasium as gym
 import numpy as np
 import sys
 import pathlib
-import os
-import mpc_jules as mpc
-import time
 sys.path.append(str(pathlib.Path(__file__).parent))
 
+
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
-from real_enviroment.goal_jules_v2 import goal1
-from real_enviroment import goal_jules_v2 
-from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 from urdfenvs.sensors.full_sensor import FullSensor
-from real_enviroment.create_all_walls import sphere_list_export
-from cubic_spline_planner import main_2d
-from global_path_planner import global_path_planner_run
-from reference_path import csteer_bas, cx_bas, cy_bas, cyaw_bas
-#For the RRT's
-from RRTs.RRT_dubins import RRT_dubins_run
-from RRTs.rrt_star_dubins import rrt_star_dubins_run
 
-from real_enviroment.goal_jules_v2 import goal_pos
+from environment.goal import goal1
+from local_path_planner import mpc
+from global_path_planner.main_global_path_planner import global_path_planner_run
+from environment import three_environments
+from environment.dynamic_obstacle import dynamicSphereObst1, dynamicSphereObst2
+from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
-#For the local path planner lqr
-from lqr_speed_steer_control import lqr_run
 
-# For the obstacles
-import three_environments
-env_id = 1
 
-def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
+
+
+
+dt = 0.1
+def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
@@ -42,29 +34,26 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
             steering_links=['front_right_steer_joint', 'front_left_steer_joint'],
         )
     ]
-    env = gym.make(
+    env: UrdfEnv = gym.make(
         "urdf-env-v0",
-        dt=0.01, robots=robots, render=render
+        dt=0.1, robots=robots, render=render
     )
-    action = np.array([0, 0])
-    pos0 = np.array([0.0, 0.0, 0.0])
+    action = np.array([1, 0])
+    pos0 = np.array([-13.0, -13.0, np.pi*0.5])
     vel0 = np.array([0.0, 0.0, 0.0])
     ob = env.reset(pos=pos0, vel=vel0)
     
-    # # add walls
-    # for sphere_i in sphere_list_export:
-    #     env.add_obstacle(sphere_i)
-        
-    # Add the ostacles
-    environment = three_environments.build_environment(env_id)  # Choose the environment (0 for easy, 1 for medium, 2 for hard)
-    converted_spheres = three_environments.circles_to_spheres(environment, radius=0.4)  
+    # add walls
+    environment = three_environments.build_environment(env_id = 1)  # Choose the environment (0 for easy, 1 for medium, 2 for hard)
+    converted_spheres = three_environments.circles_to_spheres(environment)  
     
     for sphere in converted_spheres:
         env.add_obstacle(sphere)
 
     # add goal
-    env.add_goal(goal1)
     
+    env.add_goal(goal1)
+    env.add_obstacle(dynamicSphereObst1)
     # add sensor
     sensor = FullSensor(['position'], ['position', 'size'], variance=0.0)
     env.add_sensor(sensor, [0])
@@ -72,6 +61,8 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     env.set_spaces()
     
     #env.set_spaces()
+
+
 
     print(f"Initial observation : {ob}")
     
@@ -81,7 +72,6 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
     action = np.zeros(env.n())
     ob, *_ = env.step(action)
     obst_dict = ob['robot_0']['FullSensor']['obstacles']
-    
     obstacles = [obstacle for obstacle in obst_dict]
     obs_pos = []
 
@@ -92,35 +82,89 @@ def run_prius(n_steps=1000, render=False, goal=True, obstacles=True):
         obs_pos.append((x,y,rad))
     
     
-    cx, cy, cyaw, ck, s = global_path_planner_run(env_id)
+    # select environment. 0 = easy, 1 = medium, 2 = hard
+
+    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1)
+    # cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
+    cyaw = mpc.smooth_yaw(cyaw)
+    # print(f"THIS IS THE CX {cx}", "\n \n")
+    # print(f"THIS IS THE Cy {cy}", "\n \n")
+    # print(f"THIS IS THE Cyaw {cyaw}", "\n \n")
+    # print(f"THIS IS THE Ck {ck}", "\n \n")
+
+    goal = [cx[-1], cy[-1]]
+
     
-    goal = goal_jules_v2.goal1Dict["desired_position"]
-    v, yaw = lqr_run(cx, cy, cyaw, ck, s, [goal[0],goal[1]])
+    #Adding path in the environment
+    path_positions = []
+    for i in range(0, len(cx), 10):
+
+        xpath_i = cx[i]
+        ypath_i = cy[i]
+        # print(xpath_i, ypath_i)
+        path_positions.append([xpath_i, ypath_i, 0])
+        env.add_visualization(shape_type="cylinder", size=[0.10, 0.005], rgba_color=np.array([1, 0, 0, 1]))  # Small cylinder
+    
+
+  
+    env.update_visualizations(positions=path_positions)
+    
 
 
-    # csteer = np.arctan(ck)
-    # csteer = list(csteer)
-    
-    cx = cx_bas
-    cy = cy_bas
-    cyaw = cyaw_bas
-    csteer = csteer_bas
-    # print(f'cx: {cx}')
-    # print(f' cy: {cy}')
-    # print(f'cyaw: {cyaw}')
-    # print(f'csteer: {csteer}')
+
+
+    ########################
+        
     pind = 0
     n = 20
+    state = mpc.State(ob)
+    target_ind, _ = mpc.calc_nearest_index(state, cx, cy, cyaw, 0)
+    sp = mpc.calc_speed_profile(cx, cy, cyaw, mpc.TARGET_SPEED)
+    dl = 1.0
 
     for i in range(n_steps):
-        action = np.array([v[i], (yaw[i+1]-yaw[i])/0.1])
         ob, *_ = env.step(action)
-        ox, oy, o_yaw, o_steer, u_v, u_steer_vel, index_near = mpc.run_mpc(ob, cx, cy, cyaw, csteer, pind, n)
-        pind = index_near
-        action = np.array([u_v[0], o_yaw[0]])
+
+        dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][54]['position'][0],
+                                    ob['robot_0']['FullSensor']['obstacles'][54]['position'][1],
+                                      ob['robot_0']['FullSensor']['obstacles'][54]['size'][0], -0.4]
+                                      ])
+        
+        print(dynamic_obst)
+        delta = ob['robot_0']['joint_state']['steering']
+        v = ob['robot_0']['joint_state']['forward_velocity'][0]
+
+        x0 = [state.x, state.y, state.v, state.yaw]
+        
+
+        
+
+        xref, target_ind, dref = mpc.calc_ref_trajectory(
+                state, cx, cy, cyaw, ck, sp, dl, target_ind)
+        
+        odelta, oa = None, None
+        oa, odelta, ox, oy, oyaw, ov = mpc.iterative_linear_mpc_control(
+                xref, ob, x0, dref, oa, odelta, dynamic_obst)
+
+        di, ai = 0.0, 0.0
+        if odelta is not None:
+            di, ai = odelta[0], oa[0]
+            state = mpc.State(ob)
+
+        vi = v + ai*dt
+        delta_dot = (di - delta) / dt
+        action = np.array([vi, delta_dot])
+        
+        
+        
+
+        if mpc.check_goal(state, goal, target_ind, len(cx)):
+            print("Goal Reached!!")
+            break
+
         print(f'action: {action}')
-        if ob['robot_0']['joint_state']['steering'] > 0.2:
-            action[1] = 0
+        # if ob['robot_0']['joint_state']['steering'] > 0.2:
+        #     action[1] = 0
         history.append(ob)
     env.close()
     return history

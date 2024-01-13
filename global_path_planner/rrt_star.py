@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
-from RRTs.rrt import RRT
+from global_path_planner.rrt import RRT
 
 show_animation = True
 

@@ -5,7 +5,7 @@ Dubins path planner sample code
 """
 from math import sin, cos, atan2, sqrt, acos, pi, hypot
 import numpy as np
-from RRTs.angle import angle_mod, rot_mat_2d
+from global_path_planner.angle import angle_mod, rot_mat_2d
 
 show_animation = True
 

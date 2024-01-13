@@ -7,15 +7,11 @@ import math
 import random
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
-import pathlib
-sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))  # root dir
-sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
-from RRTs import dubins_path_planner
-from RRTs.rrt_star import RRTStar
-from RRTs.rrt import RRT
-from RRTs.plot import plot_arrow
+from global_path_planner import dubins_path_planner
+from global_path_planner.rrt_star import RRTStar
+from global_path_planner.rrt import RRT
+from global_path_planner.plot import plot_arrow
 
 show_animation = True
 

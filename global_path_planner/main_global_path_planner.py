@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from RRTs import rrt_star_dubins
-import cubic_spline_planner
-from RRTs.rrt import RRT
-from three_environments import build_environment
-from RRTs.RRT_dubins import RRTDubins
-from RRTs.rrt_star import RRTStar
+from global_path_planner import rrt_star_dubins
+from global_path_planner import cubic_spline_planner
+from global_path_planner.rrt import RRT
+from environment.three_environments import build_environment
+from global_path_planner.RRT_dubins import RRTDubins
+from global_path_planner.rrt_star import RRTStar
 from datetime import datetime
 
 def RRT_dubins_run(obstacles1, goal_pos, start_pos):

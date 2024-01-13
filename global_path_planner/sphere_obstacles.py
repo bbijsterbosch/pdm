@@ -3,8 +3,7 @@ from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
 from mpscenes.obstacles.urdf_obstacle import UrdfObstacle
 from mpscenes.obstacles.box_obstacle import BoxObstacle
 from mpscenes.obstacles.cylinder_obstacle import CylinderObstacle
-import numpy as np
-import os
+
 
 
 

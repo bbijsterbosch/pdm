@@ -7,18 +7,10 @@ import math
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-import pathlib
-sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))  # root dir
-sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
-
-from RRTs.rrt import RRT
-from RRTs import dubins_path_planner
-from RRTs.plot import plot_arrow
-from RRTs.angle import rot_mat_2d
-from RRTs.angle import angle_mod
-import RRTs.sphere_obstacles as so
+from global_path_planner.rrt import RRT
+from global_path_planner import dubins_path_planner
+from global_path_planner.plot import plot_arrow
 
 show_animation = True
 
