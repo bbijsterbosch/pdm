@@ -22,11 +22,6 @@ def rot_mat_2d(angle):
     -------
     A 2D rotation matrix
 
-    Examples
-    --------
-    >>> angle_mod(-4.0)
-
-
     """
     return Rot.from_euler('z', angle).as_matrix()[0:2, 0:2]
 
@@ -53,19 +48,6 @@ def angle_mod(x, zero_2_2pi=False, degree=False):
     ret : float or ndarray
         an angle or an array of modulated angle.
 
-    Examples
-    --------
-    >>> angle_mod(-4.0)
-    2.28318531
-
-    >>> angle_mod([-4.0])
-    np.array(2.28318531)
-
-    >>> angle_mod([-150.0, 190.0, 350], degree=True)
-    array([-150., -170.,  -10.])
-
-    >>> angle_mod(-60.0, zero_2_2pi=True, degree=True)
-    array([300.])
 
     """
     if isinstance(x, float):

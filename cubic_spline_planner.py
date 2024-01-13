@@ -5,8 +5,6 @@ Cubic spline planner
 import math
 import numpy as np
 import bisect
-import sys
-import pathlib
 import matplotlib.pyplot as plt
 
 from RRTs.rrt import RRT

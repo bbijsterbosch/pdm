@@ -1,10 +1,5 @@
 import numpy as np
-import sys
-import pathlib
 import matplotlib.pyplot as plt
-
-sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))  # root dir
-sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 from RRTs import rrt_star_dubins
 import cubic_spline_planner
@@ -144,11 +139,6 @@ def cubic_splines(path_arr, obstacleList, env_id):
             rk[i] = 1.0  # Limit curvature to 1.0
             rx[i], ry[i] = sp.calc_position(s[i])  # Update path point based on limited curvature
 
-   
-    plot_ryaw = ryaw[::10]
-    plotx = rx[::10]
-    ploty = ry[::10]
-    
     idx_wrong_K = []    
     for idx, K in enumerate(rk):
         if K > 1:
@@ -178,8 +168,8 @@ def cubic_splines(path_arr, obstacleList, env_id):
         
     if cubic_spline_planner.check_collision(spline_points, obstacleList):
         print("Collision detected! Adjust spline generation.\n")
-    # else:
-        # print("No collision detected. Spline path is safe.\n")
+    else:
+        print("No collision detected. Spline path is safe.\n")
 
     plt.subplots(1)
     plt.plot(rrt_x, rrt_y, "-b", label="RRT-star Dubins path")
@@ -194,7 +184,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
     for (ox, oy, size) in obstacleList:
             RRT.plot_circle(ox, oy, size)
 
-    # plt.show()
+    plt.show()
     
     return rx, ry, ryaw, rk, s
 
