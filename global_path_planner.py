@@ -48,7 +48,7 @@ def RRT_star_Dubins(obstacleList, start, goal):
       # [x,y,size(radius)]
 
     # show the RRT search or not
-    show_animation = False
+    show_animation = True
 
     # calculate the path using RRT Start Dubins
     rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-15., 15.], obstacle_list=obstacleList)
@@ -181,20 +181,20 @@ def cubic_splines(path_arr, obstacleList, env_id):
     else:
         print("No collision detected. Spline path is safe.\n")
 
-    # plt.subplots(1)
-    # plt.plot(rrt_x, rrt_y, "-b", label="RRT-star Dubins path")
-    # plt.plot(rx, ry, "-r", label="Cubic spline path")
-    # for idx in idx_wrong_K:
-    #     plt.scatter(rx[idx],ry[idx], c="black")
-    # plt.grid(False)
-    # plt.title(f'Total path length: {length:.2f} meters')
-    # plt.axis([-2, 32, -2, 32])
-    # plt.legend()
+    plt.subplots(1)
+    plt.plot(rrt_x, rrt_y, "-b", label="RRT-star Dubins path")
+    plt.plot(rx, ry, "-r", label="Cubic spline path")
+    for idx in idx_wrong_K:
+        plt.scatter(rx[idx],ry[idx], c="black")
+    plt.grid(False)
+    plt.title(f'Total path length: {length:.2f} meters')
+    plt.axis([-2, 32, -2, 32])
+    plt.legend()
     
-    # for (ox, oy, size) in obstacleList:
-    #         RRT.plot_circle(ox, oy, size)
+    for (ox, oy, size) in obstacleList:
+            RRT.plot_circle(ox, oy, size)
 
-    # plt.show()
+    plt.show()
     
     return rx, ry, ryaw, rk, s
 

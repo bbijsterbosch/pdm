@@ -23,11 +23,11 @@ def build_environment(env_id):
         
         obstacleList = []
         
-        for i in range(-15,8):
+        for i in range(-17,8):
             obstacle = (-5, i, 0.5)
             obstacleList.append(obstacle)
         
-        for i in range(-8,15):
+        for i in range(-8,18):
             obstacle = (5, i, 0.5)
             obstacleList.append(obstacle)    
         
