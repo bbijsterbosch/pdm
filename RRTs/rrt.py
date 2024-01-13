@@ -200,7 +200,7 @@ class RRT:
         plt.plot(self.end.x, self.end.y, "xr")
         # plt.axis("equal")
         plt.title(f'max_iter = {self.max_iter}')
-        plt.axis([-2, 32, -2, 32])
+        plt.axis([-17, 17, -17, 17])
         plt.grid(False)
         plt.pause(0.01)
 

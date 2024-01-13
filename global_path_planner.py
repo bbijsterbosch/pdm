@@ -48,7 +48,7 @@ def RRT_star_Dubins(obstacleList, start, goal):
       # [x,y,size(radius)]
 
     # show the RRT search or not
-    show_animation = True
+    show_animation = False
 
     # calculate the path using RRT Start Dubins
     rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-15., 15.], obstacle_list=obstacleList)
@@ -160,7 +160,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
     else:
         print(f'All curvatures satisfy the curvature constraints!\n')
     
-    print(f'Number of points: {np.shape(rx)[0]}\n')
+    print(f'Number of points:               {np.shape(rx)[0]} points\n')
     
     spline_points = np.zeros((len(rx),2))
     for i in range(len(rx)):
@@ -173,13 +173,13 @@ def cubic_splines(path_arr, obstacleList, env_id):
         dx = rx[i] - rx[i - 1]
         dy = ry[i] - ry[i - 1]
         length += np.sqrt(dx ** 2 + dy ** 2)
-    print(f"Total path length: {length:.2f} meters")
+    print(f"Total path length:              {length:.2f} meters\n")
 
         
     if cubic_spline_planner.check_collision(spline_points, obstacleList):
         print("Collision detected! Adjust spline generation.\n")
-    else:
-        print("No collision detected. Spline path is safe.\n")
+    # else:
+        # print("No collision detected. Spline path is safe.\n")
 
     plt.subplots(1)
     plt.plot(rrt_x, rrt_y, "-b", label="RRT-star Dubins path")
@@ -187,14 +187,14 @@ def cubic_splines(path_arr, obstacleList, env_id):
     for idx in idx_wrong_K:
         plt.scatter(rx[idx],ry[idx], c="black")
     plt.grid(False)
-    plt.title(f'Total path length: {length:.2f} meters')
-    plt.axis([-2, 32, -2, 32])
+    plt.title(f'Total path length: {length:.2f} meters\n')
+    plt.axis([-17, 17, -17, 17])
     plt.legend()
     
     for (ox, oy, size) in obstacleList:
             RRT.plot_circle(ox, oy, size)
 
-    plt.show()
+    # plt.show()
     
     return rx, ry, ryaw, rk, s
 
@@ -206,7 +206,7 @@ def global_path_planner_run(env_id):
     
     # set start and goal locationis
     if env_id == 0 or env_id == 1:
-        start = [-13., -13., np.deg2rad(45.0)]
+        start = [-13., -13., np.deg2rad(90.0)]
         goal = [13.0, 13.0, np.deg2rad(90.0)]
     elif env_id == 2:
         start = [0.0, 0.0, np.deg2rad(90.0)]
@@ -227,10 +227,10 @@ def global_path_planner_run(env_id):
     k_diffs = []
     for i in range(len(ck)):
         diff_k = ck[i] - ck[i-1]
-        k_diffs = np.append(k_diffs, diff_k**6)
+        k_diffs = np.append(k_diffs, diff_k)
         
     av_k_diff = np.average(k_diffs,axis=0)
-    print(f'average curvature difference: {av_k_diff}')
+    print(f'average curvature difference:   {av_k_diff}\n')
         
         
 
@@ -249,4 +249,4 @@ if __name__ == '__main__':
     # stop the timer
     end_time = datetime.now()
     elapsed_time = end_time - start_time
-    print(f'time elapsed: {elapsed_time}')
+    print(f'time elapsed:                   {elapsed_time}')
