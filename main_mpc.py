@@ -28,7 +28,7 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 
-dt = 0.1
+dt = 0.2
 def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     robots = [
         BicycleModel(
@@ -44,7 +44,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     ]
     env: UrdfEnv = gym.make(
         "urdf-env-v0",
-        dt=0.1, robots=robots, render=render
+        dt=0.2, robots=robots, render=render
     )
     action = np.array([1, 0])
     pos0 = np.array([-13.0, -13.0, np.pi*0.5])

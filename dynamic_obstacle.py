@@ -2,7 +2,7 @@ from mpscenes.obstacles.dynamic_sphere_obstacle import DynamicSphereObstacle
 
 dynamicObst1Dict = {
     "type": "sphere",
-    "geometry": {"trajectory": ["5.0 - 0.3 * t", "0.", "0.1"], "radius": 0.5},
+    "geometry": {"trajectory": ["5.0 - 0.1 * t ", "0.", "0.1"], "radius": 1},
     "movable": False,
 }
 
