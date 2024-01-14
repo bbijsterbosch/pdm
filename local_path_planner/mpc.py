@@ -172,7 +172,7 @@ def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, x_obs1):
 
     return oa, od, ox, oy, oyaw, ov
 
-def linear_mpc_control(xref, xbar, x0, dref, x_obs):
+def linear_mpc_control(xref, xbar, x0, dref, obstacle):
     """
     linear mpc control
 
@@ -213,11 +213,12 @@ def linear_mpc_control(xref, xbar, x0, dref, x_obs):
 
         
         # for obs in x_obs:
-        obs = np.array([[0],
+        if obstacle:
+            obs = np.array([[0],
                         [0],
                         [0.5]]).reshape(-1)
             
-        constraints += [cvxpy.norm(x[:2,t] - obs[:2]) >= 2*obs[2]+0.5]
+            constraints += [cvxpy.norm(x[:2,t] - obs[:2]) >= 2*obs[2]+0.5]
             
         # constraints += [A_cc @ x[:,t] >= b_cc1]
         if t < (T - 1):
