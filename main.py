@@ -16,8 +16,8 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 
-dt = 0.1
-def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obstacle=False, gather_data=True):
+
+def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstacle=False, gather_data=True, noise=True):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
@@ -34,6 +34,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
         "urdf-env-v0",
         dt=0.1, robots=robots, render=render
     )
+    dt = 0.1
     action = np.array([0, 0])
     pos0 = np.array([-13.0, -13.0, np.pi*0.5])
     vel0 = np.array([0.0, 0.0, 0.0])
@@ -110,13 +111,20 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
     if gather_data:
         t = []
         time = 0.0
-        x = [state.x]
-        y = [state.y]
-        yaw = [state.yaw]
-        v = [state.v]
-        delta = [state.delta]
-        
-
+        x = []
+        y = []
+        yaw = []
+        v = []
+        delta = []
+        x_ref=[] 
+        y_ref = []
+        yaw_ref = []
+        v_ref = []
+        delta_ref = []
+        v_input = []
+        delta_input = []
+        v_input_noise = []
+        delta_input_noise = []
 
     for i in range(n_steps):
         ob, *_ = env.step(action)
@@ -152,8 +160,15 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
 
         vi = state.v + ai*dt
         delta_dot = (di - state.delta) / dt
-        action = np.array([vi, delta_dot])
         
+        
+        if noise:
+            gaussian_noise = np.random.normal(0, 0.3)
+            vi_noise = vi+gaussian_noise
+            delta_dot_noise = delta_dot+gaussian_noise
+        
+        action = np.array([vi_noise, delta_dot_noise])
+
         time += dt
 
         if gather_data:
@@ -163,35 +178,83 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
             v.append(state.v)
             delta.append(state.delta)
             t.append(time)
-
+            x_ref.append(xref[0,0])
+            y_ref.append(xref[1,0])
+            v_ref.append(xref[2,0])
+            yaw_ref.append(xref[3,0])
+            delta_ref.append(dref)
+            delta_input.append(delta_dot)
+            delta_input_noise.append(delta_dot_noise)
+            v_input.append(vi)
+            v_input_noise.append(v_input_noise)
         if mpc.check_goal(state, goal, target_ind, len(cx)):
             print("Goal Reached!!")
             break
 
-        print(f'action: {action}')
+        # print(f'action: {action}')
         # if ob['robot_0']['joint_state']['steering'] > 0.2:
         #     action[1] = 0
         history.append(ob)
     env.close()
 
-    if gather_data:
         
-        plt.plot(ox, oy, "xr", label="MPC")
-        plt.plot(cx, cy, "-r", label="course")
-        plt.plot(x, y, "ob", label="trajectory")
-        plt.plot(xref[0, :], xref[1, :], "xk", label="xref")
-        plt.plot(cx[target_ind], cy[target_ind], "xg", label="target")
         
-        plt.axis("equal")
-        plt.grid(True)
-        plt.title("Time[s]:" + str(round(t, 2))
-                + ", speed[km/h]:" + str(round(state.v * 3.6, 2)))
-        plt.pause(0.0001)
 
 
-    return history
+    return x, y, yaw, v, delta, t, delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise
 
 
 if __name__ == "__main__":
-    run_prius(render=False)
+
+    x, y, yaw, v, delta, t,delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise = run_prius()
     
+    if gather_data:
+        
+        plt.subplots()
+        plt.plot(x_ref, y_ref, "-r", label="course")
+        plt.plot(x, y, "-b", label="trajectory")
+        plt.xlabel('x[m]')
+        plt.ylabel('y[m]')
+        plt.axis("equal")
+        plt.legend()
+        plt.grid(True)
+
+        plt.subplots()
+        plt.plot(t, yaw, "-r", label="orientation")
+        plt.plot(t, yaw_ref, "-b", label="reference")
+        plt.xlabel('t[s]')
+        plt.ylabel('Orientation [rad]')
+        plt.legend()
+        plt.grid(True)
+
+        plt.subplots()
+        plt.plot(t, delta, "-r", label="Steering angle")
+        plt.xlabel('t[s]')
+        plt.ylabel('[$\delta$][rad]')
+        plt.legend()
+        plt.grid(True)
+
+        
+        plt.subplot(2,1,1)
+        plt.plot(t,  v_input, label='velocity input')
+        plt.xlabel('t[s]')
+        plt.ylabel('velocity input [m/s]')
+
+        plt.subplot(2,1,2)
+        plt.plot(t, v_input_noise, label='signal with noise')
+        plt.xlabel('t[s]')
+        plt.ylabel('velocity input with noise [m/s]')
+
+        
+        plt.subplot(2,1,1)
+        plt.plot(t, delta_input, label='Steering input')
+        plt.xlabel('t[s]')
+        plt.ylabel('steering input [rad/s]')
+        
+        plt.subplot(2,1,2)
+        plt.plot(t, delta_input_noise, label='Signal with noise')
+        plt.xlabel('t[s]')
+        plt.ylabel('steering input with noise [rad/s]')
+        
+        # plt.tight_layout()
+        plt.show()

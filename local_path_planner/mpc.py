@@ -29,10 +29,10 @@ DT = 0.1  # [s] time tick
 
 # Vehicle parameters
 LENGTH = 1.2*0.3  # [m]
-WIDTH = 0.494  # [m]
+WIDTH = 0.494*0.3  # [m]
 BACKTOWHEEL = 0.2*0.3  # [m]
-WHEEL_LEN = 0.1*0.3  # [m]
-WHEEL_WIDTH = 0.2*0.3  # [m]
+WHEEL_LEN = 0.31268*0.3  # [m]
+WHEEL_WIDTH = 0.31268  # [m]
 TREAD = 0.7*0.3  # [m]
 WB = 1  # [m]
 
