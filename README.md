@@ -19,9 +19,13 @@ For planning the trajectory of the path a sampling-based motion planning algorit
 
 ## Installation and run instructions
 1. Install packages:
+First install the environment
 ```console
-pip install blablabla
-pip install blabla
+pip3 install urdfenvs
+```
+Install package
+```console
+pip install dccp
 ```
 2. clone this repository:
 ```console
