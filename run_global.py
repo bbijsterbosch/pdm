@@ -17,7 +17,7 @@ def RRT_dubins_run(obstacles1, goal_pos, start_pos, animation):
     
     show_animation = animation
 
-    rrt_dubins = RRTDubins(goal_pos, start_pos, obstacle_list=obstacleList, rand_area=[-15.0, 15.0])
+    rrt_dubins = RRTDubins(goal_pos, start_pos, obstacle_list=obstacleList, rand_area=[-15., 15.0])
     path = rrt_dubins.planning(animation=show_animation)
     
     # flip the path so it goes from start to finish
@@ -34,7 +34,7 @@ def RRT_dubins_run(obstacles1, goal_pos, start_pos, animation):
         
     return path_arr
 
-def RRT_star_Dubins(obstacleList, start, goal, animation, n_it):
+def RRT_star_Dubins(num_iter, obstacleList, start, goal, animation):
     
     print("Start RRT star with Dubins planning")
 
@@ -46,7 +46,7 @@ def RRT_star_Dubins(obstacleList, start, goal, animation, n_it):
     show_animation = animation
 
     # calculate the path using RRT Start Dubins
-    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-15., 15.], obstacle_list=obstacleList, max_iter=n_it)
+    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, num_iter, rand_area=[-15., 15.], obstacle_list=obstacleList)
     path = rrtstar_dubins.planning(animation=show_animation)
 
     # flip the path so it goes from start to finish
@@ -77,7 +77,7 @@ def rrt_star_run(obstacle1, goal_pos, start_pos, animation):
     rrt_star = RRTStar(
         start=start_pos,
         goal=goal_pos,
-        rand_area=[-15, 15],
+        rand_area=[0, 30],
         obstacle_list=obstacle_list,
         expand_dis=5,
         robot_radius=2.0)
@@ -157,13 +157,13 @@ def cubic_splines(path_arr, obstacleList, env_id):
         spline_points[i] = (rx[i],ry[i])
         
     # calculate length of the path  
-    length = 0.0
+    path_length = 0.0
     for i in range(1, len(rx)):
         # Calculate distance between consecutive points and add to total length
         dx = rx[i] - rx[i - 1]
         dy = ry[i] - ry[i - 1]
-        length += np.sqrt(dx ** 2 + dy ** 2)
-    print(f"Total path length:              {length:.2f} meters\n")
+        path_length += np.sqrt(dx ** 2 + dy ** 2)
+    print(f"Total path length:              {path_length:.2f} meters\n")
 
         
     if cubic_spline_planner.check_collision(spline_points, obstacleList):
@@ -171,26 +171,26 @@ def cubic_splines(path_arr, obstacleList, env_id):
     else:
         print("No collision detected. Spline path is safe.\n")
 
-    plt.subplots(1)
-    plt.plot(rrt_x, rrt_y, "-b", label="RRT-star Dubins path")
-    plt.plot(rx, ry, "-r", label="Cubic spline path")
-    for idx in idx_wrong_K:
-        plt.scatter(rx[idx],ry[idx], c="black")
-    plt.grid(False)
-    plt.title(f'Total path length: {length:.2f} meters')
-    plt.axis([-17, 17, -17, 17])
-    plt.legend()
+    # plt.subplots(1)
+    # plt.plot(rrt_x, rrt_y, "-b", label="RRT-star Dubins path")
+    # plt.plot(rx, ry, "-r", label="Cubic spline path")
+    # for idx in idx_wrong_K:
+    #     plt.scatter(rx[idx],ry[idx], c="black")
+    # plt.grid(False)
+    # plt.title(f'Total path length: {path_length:.2f} meters\n')
+    # plt.axis([-17, 17, -17, 17])
+    # plt.legend()
     
-    for (ox, oy, size) in obstacleList:
-            RRT.plot_circle(ox, oy, size)
+    # for (ox, oy, size) in obstacleList:
+    #         RRT.plot_circle(ox, oy, size)
 
-    plt.show()
+    # plt.show()
     
-    return rx, ry, ryaw, rk, s
+    return rx, ry, ryaw, rk, s, path_length
 
 
     
-def global_path_planner_run(env_id, animation, n_it):
+def global_path_planner_run(num_iter, env_id, animation):
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
     
@@ -199,19 +199,19 @@ def global_path_planner_run(env_id, animation, n_it):
         start = [-13., -13., np.deg2rad(90.0)]
         goal = [13.0, 13.0, np.deg2rad(90.0)]
     elif env_id == 2:
-        start = [-15.0, -15.0, np.deg2rad(90.0)]
-        goal = [-15.0, 11.0, np.deg2rad(180.0)]   
+        start = [0.0, 0.0, np.deg2rad(90.0)]
+        goal = [0.0, 26.0, np.deg2rad(180.0)]   
     
     # retreive the obstacles of the environment
     obstacleList = build_environment(env_id) 
     
     # use RRT star Dubins for the path planning
-    path = RRT_star_Dubins(obstacleList, start, goal, animation, n_it)
+    path = RRT_star_Dubins(num_iter, obstacleList, start, goal, animation)
     # path = RRT_dubins_run(obstacleList, start, goal, animation)
     # path = rrt_star_run(obstacleList, goal, start, animation)    
     
     # use cubic splines to smoothen the path
-    cx, cy, cyaw, ck, s = cubic_splines(path, obstacleList, env_id)
+    cx, cy, cyaw, ck, s, path_length = cubic_splines(path, obstacleList, env_id)
     
     # calculate the difference in curvature
     k_diffs = []
@@ -225,18 +225,48 @@ def global_path_planner_run(env_id, animation, n_it):
         
 
     
-    return cx, cy, cyaw, ck, s
+    return cx, cy, cyaw, ck, s, path_length
 
 
 if __name__ == '__main__':
     
-    # start timer to see how long the algorithm takes
-    start_time = datetime.now()
+    time_arr = []
+    length_arr = []
+    num_iter = []
     
-    # select environment. 0 = easy, 1 = medium, 2 = hard
-    global_path_planner_run(env_id = 1)
+    for i in range(330,601,15):
+        
+        # start timer to see how long the algorithm takes
+        start_time = datetime.now()
+        
+        # select environment. 0 = easy, 1 = medium, 2 = hard
+        cx, cy, cyaw, ck, s, path_length = global_path_planner_run(i, env_id = 1, animation=False)
+        
+        # stop the timer
+        end_time = datetime.now()
+        elapsed_time = round((end_time - start_time).total_seconds(),2)
+        # print(f'time elapsed:                   {elapsed_time}')
+        
+        
+        time_arr.append(elapsed_time)
+        length_arr.append(path_length)
+        num_iter.append(i)
     
-    # stop the timer
-    end_time = datetime.now()
-    elapsed_time = end_time - start_time
-    print(f'time elapsed:                   {elapsed_time}')
+    print(f'time array: {time_arr}\n')
+    print(f'length array: {length_arr}\n')
+    print(f'num_iter array: {num_iter}\n')
+    
+               
+    plt.plot(num_iter,length_arr,color='blue')    
+    plt.xlabel("number of iterations")
+    plt.ylabel("path length [m]")
+    plt.grid(True)
+    plt.show()
+    
+    
+    plt.plot(num_iter,time_arr,color='green')
+    plt.xlabel("number of iterations")
+    plt.ylabel("runtime [s]")
+    plt.grid(True)
+    plt.show()
+    
