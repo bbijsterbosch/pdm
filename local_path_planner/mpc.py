@@ -19,7 +19,7 @@ STOP_SPEED = 0.5 / 3.6  # stop speed
 MAX_TIME = 500 # max simulation time
 
 # iterative paramter
-MAX_ITER = 1  # Max iteration
+MAX_ITER = 2  # Max iteration
 DU_TH = 0.1  # iteration finish param
 
 TARGET_SPEED = 10.0 / 3.6  # [m/s] target speed
