@@ -5,11 +5,25 @@ This repository contains a framework for global and local path planning with sta
 **Authors:** Bas Bijsterbosch, Wimer Leijendekker, Tjeerd Wams, Jules Zwanen.
 
 ## File structure
-- 📁 **environment** contains the descriptions of the three different environments and its obstacles.	
-- 📁 **global_path_planner:** contains all global path planning algorithms, such as RRT, RRT*, Dubins path and cubic splines. 
-- 📁 **local_path_planner:** contains the code for the MPC.
-- 📁 **utils:** contains some utilization functions that perform (mathematical) operations.
-- 📄 ```main.py:``` run the this file to run  the project.
+├─ 📁 **environment** contains the descriptions of the three different environments and its obstacles.	
+│   ├─ ```dynamic_obstacle.py```
+│   ├─ ```goal.py```
+│   ├─ ```three_environments.py```
+│   └─ ```wall_of_spheres.py```
+├ 📁 **global_path_planner:** contains all global path planning algorithms, such as RRT, RRT*, Dubins path and cubic splines. 
+│   ├─ ```cubic_spline_planner.py```
+│   ├─ ```dubins_path_planner.py```
+│   ├─ ```main_global_path_planner.py```
+│   ├─ ```RRT_dubins.py```
+│   ├─ ```rrt_star_dubins.py```
+│   ├─ ```rrt_star.py```
+│   └─ ```rrt.py```
+├ 📁 **local_path_planner:** contains the code for the MPC.
+│   └─ ```mpc.py```
+├ 📁 **utils:** contains some utilization functions that perform (mathematical) operations.
+│   ├─ ```angle.py```
+│   └─ ```plot.py```
+└  ```main.py:``` run the this file to run  the project.
 
 ## Project description
 The objective is for the car to reach the end goal through a slalom road with obstacles next to it while two moving obstacles are crossing the road. The model is tested by first letting it plan in easier environments without the moving obstacles and increasing the difficulty of the environment by making the lanes smaller and adding more turns and eventually adding the dynamic obstacles.
