@@ -2,9 +2,9 @@ import gymnasium as gym
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patch
+import time
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
 from urdfenvs.sensors.full_sensor import FullSensor
-
 from environment.goal import goal1
 from local_path_planner import mpc
 from global_path_planner.main_global_path_planner import global_path_planner_run
@@ -18,7 +18,7 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 
-def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obstacle=True, gather_data=True, noise=False):
+def run_prius(n_steps=800, render=False, goal=True, obstacles=True, dynamic_obstacle=True, gather_data=True, noise=False):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
@@ -111,7 +111,7 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
 
     if gather_data:
         t = []
-        time = 0.0
+        timer = 0.0
         x = []
         y = []
         yaw = []
@@ -126,8 +126,11 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
         delta_input = []
         v_input_noise = []
         delta_input_noise = []
+        computation_times = []
+        
 
     for i in range(n_steps):
+        
         ob, *_ = env.step(action)
         state = mpc.State(ob)
         if dynamic_obstacle:
@@ -145,7 +148,7 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
         x0 = [state.x, state.y, state.v, state.yaw]
         
 
-        
+        start_time = time.time()
 
         xref, target_ind, dref = mpc.calc_ref_trajectory(
                 state, cx, cy, cyaw, ck, sp, dl, target_ind)
@@ -153,6 +156,8 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
         odelta, oa = None, None
         oa, odelta, ox, oy, oyaw, ov = mpc.iterative_linear_mpc_control(
                 xref, ob, x0, dref, oa, odelta, dynamic_obstacle, obs_pos)
+
+        end_time = time.time()
 
         di, ai = 0.0, 0.0
         if odelta is not None:
@@ -163,6 +168,8 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
         delta_dot = (di - state.delta) / dt
         action = np.array([vi, delta_dot])
         
+        computation_time = end_time - start_time 
+
         if noise:
             gaussian_noise = np.random.normal(0, 0.5)
             vi_noise = vi+gaussian_noise
@@ -170,7 +177,7 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
             action = np.array([vi_noise, delta_dot_noise])
             delta_input_noise.append(delta_dot_noise)
             v_input_noise.append(vi_noise)
-        time += dt
+        timer += dt
 
         if gather_data:
             x.append(state.x)
@@ -178,7 +185,7 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
             yaw.append(state.yaw)
             v.append(state.v)
             delta.append(state.delta)
-            t.append(time)
+            t.append(timer)
             x_ref.append(xref[0,0])
             y_ref.append(xref[1,0])
             v_ref.append(xref[2,0])
@@ -186,11 +193,12 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
             delta_ref.append(dref)
             delta_input.append(delta_dot)
             v_input.append(vi)
+            computation_times.append(computation_time)
             
         if mpc.check_goal(state, goal, target_ind, len(cx)):
             print("Goal Reached!!")
             break
-
+        
         # print(f'action: {action}')
         # if ob['robot_0']['joint_state']['steering'] > 0.2:
         #     action[1] = 0
@@ -201,15 +209,32 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
         
 
 
-    return x, y, yaw, v, delta, t, delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise
+    return x, y, yaw, v, delta, t, delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise, computation_times
 
 
 if __name__ == "__main__":
 
-    x, y, yaw, v, delta, t,delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise = run_prius()
+    x, y, yaw, v, delta, t,delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise, computation_times = run_prius()
     
     if gather_data:
-        
+        plt.subplots()
+        plt.plot(x, computation_times, "-r", label="Computation time vs Y positition")
+        plt.plot()
+        plt.ylabel('computation time - MPC[s]')
+        plt.xlabel('x[m]')
+        plt.axis("equal")
+        plt.legend()
+        plt.grid(True)
+
+        plt.subplots()
+        plt.plot(t, computation_times, "-r", label="Computation time vs Y positition")
+        plt.plot()
+        plt.ylabel('computation time - MPC[s]')
+        plt.xlabel('t[s]')
+        plt.axis("equal")
+        plt.legend()
+        plt.grid(True)
+
         plt.subplots()
         plt.plot(x_ref, y_ref, "-r", label="course")
         plt.plot(x, y, "-b", label="trajectory")
