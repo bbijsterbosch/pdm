@@ -150,7 +150,7 @@ def predict_motion(ob, x0, oa, od, xref):
     return xbar
 
 
-def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, x_obs1):
+def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, obstacle, obs_pos):
     """
     MPC control with updating operational point iteratively
     """
@@ -163,7 +163,7 @@ def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, x_obs1):
     for i in range(MAX_ITER):
         xbar = predict_motion(ob, x0, oa, od, xref)
         poa, pod = oa[:], od[:]
-        oa, od, ox, oy, oyaw, ov = linear_mpc_control(xref, xbar, x0, dref, x_obs1)
+        oa, od, ox, oy, oyaw, ov = linear_mpc_control(xref, xbar, x0, dref, obstacle, obs_pos)
         du = sum(abs(oa - poa)) + sum(abs(od - pod))  # calc u change value
         if du <= DU_TH:
             break
@@ -172,7 +172,7 @@ def iterative_linear_mpc_control(xref, ob, x0, dref, oa, od, x_obs1):
 
     return oa, od, ox, oy, oyaw, ov
 
-def linear_mpc_control(xref, xbar, x0, dref, obstacle):
+def linear_mpc_control(xref, xbar, x0, dref, obstacle, obs_pos):
     """
     linear mpc control
 
@@ -214,9 +214,9 @@ def linear_mpc_control(xref, xbar, x0, dref, obstacle):
         
         # for obs in x_obs:
         if obstacle:
-            obs = np.array([[0],
-                        [0],
-                        [0.5]]).reshape(-1)
+            obs = np.array([[obs_pos[0]+0.2*DT*t],
+                        [obs_pos[1]-0.2*DT*t],
+                        [1]]).reshape(-1)
             
             constraints += [cvxpy.norm(x[:2,t] - obs[:2]) >= 2*obs[2]+0.5]
             

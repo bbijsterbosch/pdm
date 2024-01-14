@@ -53,7 +53,7 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
     
     env.add_goal(goal1)
     if dynamic_obstacle:
-        env.add_obstacle(dynamicSphereObst1)
+        env.add_obstacle(dynamicSphereObst2)
     # add sensor
     sensor = FullSensor(['position'], ['position', 'size'], variance=0.0)
     env.add_sensor(sensor, [0])
@@ -131,11 +131,11 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
         ob, *_ = env.step(action)
         state = mpc.State(ob)
         if dynamic_obstacle:
-            dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][54]['position'][0],
-                                      ob['robot_0']['FullSensor']['obstacles'][54]['position'][1],
-                                      ob['robot_0']['FullSensor']['obstacles'][54]['size'][0], 
-                                      -0.4]
-                                      ])
+            obs_pos = np.array([[ob['robot_0']['FullSensor']['obstacles'][54]['position'][0],
+                                ob['robot_0']['FullSensor']['obstacles'][54]['position'][1],
+                                ob['robot_0']['FullSensor']['obstacles'][54]['size'][0], 
+                                -0.4]
+                                      ]).T
         else:
             dynamic_obst = None
         
@@ -152,7 +152,7 @@ def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obsta
         
         odelta, oa = None, None
         oa, odelta, ox, oy, oyaw, ov = mpc.iterative_linear_mpc_control(
-                xref, ob, x0, dref, oa, odelta, dynamic_obstacle)
+                xref, ob, x0, dref, oa, odelta, dynamic_obstacle, obs_pos)
 
         di, ai = 0.0, 0.0
         if odelta is not None:

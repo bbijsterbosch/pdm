@@ -3,7 +3,7 @@ from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 
 dynamicObst1Dict = {
     "type": "sphere",
-    "geometry": {"trajectory": ["5.0 - 0.1 * t ", "0.", "0.1"], "radius": 1},
+    "geometry": {"trajectory": ["-5.0 + 0.2 * t ", "5.0 - 0.2* t", "0.1"], "radius": 1},
     "movable": False,
 }
 
@@ -22,5 +22,5 @@ dynamicSphereObst1 = SphereObstacle(
     name="Sphere1", content_dict=staticObst1Dict)
 
 dynamicSphereObst2 = DynamicSphereObstacle(
-    name="dynamicSphere2", content_dict=dynamicObst2Dict)
+    name="dynamicSphere2", content_dict=dynamicObst1Dict)
 
