@@ -45,20 +45,19 @@ conda activate URDF
 ## Running instructions
 Run the main
 ```console
-cd pdm
+cd /PATH/TO/REPOSITORY/pdm
 python3 main.py
 ```
 
 ### Run settings in ```main.py```
-- bool ```animation```
+- bool ```animation```:     
 Set to True for showing animation of the global path planner
-- int ```env_id```
+- int ```env_id```:     
 Set to 1, 2 or 3 for increasing difficulty of environment where 1 is easy, 2 is medium and 3 is difficult
-- bool ```render```
+- bool ```render```:     
 Set to True for showing render of robot driving the environment
-- bool ```dynamic_obstacle```
+- bool ```dynamic_obstacle```:  
 Set to True for implementing dynamic obstacle
-Note: For hiding the visuals of the global path planner set ```animation = False``` in ```main.py```
 
 > [!IMPORTANT]
 > The local planner will start only when the user has closed the plots of the local planner.
