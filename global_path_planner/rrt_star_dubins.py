@@ -11,7 +11,7 @@ import numpy as np
 from global_path_planner import dubins_path_planner
 from global_path_planner.rrt_star import RRTStar
 from global_path_planner.rrt import RRT
-from global_path_planner.plot import plot_arrow
+from utils.plot import plot_arrow
 
 show_animation = True
 

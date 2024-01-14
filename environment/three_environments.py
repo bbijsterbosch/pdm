@@ -1,7 +1,3 @@
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-
 from environment.wall_of_spheres import create_sphere
 from mpscenes.obstacles.sphere_obstacle import SphereObstacle
 

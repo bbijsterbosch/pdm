@@ -1,9 +1,5 @@
 import gymnasium as gym
 import numpy as np
-import sys
-import pathlib
-sys.path.append(str(pathlib.Path(__file__).parent))
-
 
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
 from urdfenvs.sensors.full_sensor import FullSensor
@@ -68,19 +64,6 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     
 
     history = []
-    # Perform action 
-    action = np.zeros(env.n())
-    ob, *_ = env.step(action)
-    obst_dict = ob['robot_0']['FullSensor']['obstacles']
-    obstacles = [obstacle for obstacle in obst_dict]
-    obs_pos = []
-
-    for i in obstacles:
-        x = obst_dict[i]['position'][0]
-        y = obst_dict[i]['position'][1]
-        rad = obst_dict[i]['size'][0]
-        obs_pos.append((x,y,rad))
-    
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
 
