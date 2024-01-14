@@ -53,7 +53,7 @@ python3 main.py
 - bool ```animation```:     
 Set to True for showing animation of the global path planner
 - int ```env_id```:     
-Set to 1, 2 or 3 for increasing difficulty of environment where 1 is easy, 2 is medium and 3 is difficult
+Set to 0, 1 or 2 for increasing difficulty of environment where 1 is easy, 2 is medium and 3 is difficult
 - bool ```render```:     
 Set to True for showing render of robot driving the environment
 - bool ```dynamic_obstacle```:  

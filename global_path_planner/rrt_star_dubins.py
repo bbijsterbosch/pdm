@@ -31,9 +31,9 @@ class RRTStarDubins(RRTStar):
             self.yaw = yaw
             self.path_yaw = []
 
-    def __init__(self, start, goal, obstacle_list, rand_area,
+                 
+    def __init__(self, start, goal, obstacle_list, rand_area, max_iter,
                  goal_sample_rate=10,
-                 max_iter=400,
                  connect_circle_dist=50.0,
                  robot_radius=1.0,
                  ):
@@ -218,7 +218,7 @@ class RRTStarDubins(RRTStar):
         return path
 
 
-def rrt_star_dubins_run(obstacle1, goal_pos, start_pos):
+def rrt_star_dubins_run(obstacle1, goal_pos, start_pos, n_it):
     print("Start rrt star with dubins planning")
 
     # ====Search Path with RRT====
@@ -228,7 +228,7 @@ def rrt_star_dubins_run(obstacle1, goal_pos, start_pos):
     start = [start_pos[0], start_pos[1], np.deg2rad(0.0)]
     goal = [goal_pos[0], goal_pos[1], np.deg2rad(0.0)]
 
-    rrtstar_dubins = RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList)
+    rrtstar_dubins = RRTStarDubins(start, goal, rand_area=[-2.0, 15.0], obstacle_list=obstacleList, max_iter=n_it)
     path = rrtstar_dubins.planning(animation=show_animation)
 
     # Draw final path

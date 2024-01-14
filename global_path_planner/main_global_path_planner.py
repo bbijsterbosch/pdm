@@ -17,7 +17,7 @@ def RRT_dubins_run(obstacles1, goal_pos, start_pos, animation):
     
     show_animation = animation
 
-    rrt_dubins = RRTDubins(goal_pos, start_pos, obstacle_list=obstacleList, rand_area=[-15., 15.0])
+    rrt_dubins = RRTDubins(goal_pos, start_pos, obstacle_list=obstacleList, rand_area=[-15.0, 15.0])
     path = rrt_dubins.planning(animation=show_animation)
     
     # flip the path so it goes from start to finish
@@ -34,7 +34,7 @@ def RRT_dubins_run(obstacles1, goal_pos, start_pos, animation):
         
     return path_arr
 
-def RRT_star_Dubins(obstacleList, start, goal, animation):
+def RRT_star_Dubins(obstacleList, start, goal, animation, n_it):
     
     print("Start RRT star with Dubins planning")
 
@@ -46,7 +46,7 @@ def RRT_star_Dubins(obstacleList, start, goal, animation):
     show_animation = animation
 
     # calculate the path using RRT Start Dubins
-    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-15., 15.], obstacle_list=obstacleList)
+    rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-15., 15.], obstacle_list=obstacleList, max_iter=n_it)
     path = rrtstar_dubins.planning(animation=show_animation)
 
     # flip the path so it goes from start to finish
@@ -77,7 +77,7 @@ def rrt_star_run(obstacle1, goal_pos, start_pos, animation):
     rrt_star = RRTStar(
         start=start_pos,
         goal=goal_pos,
-        rand_area=[0, 30],
+        rand_area=[-15, 15],
         obstacle_list=obstacle_list,
         expand_dis=5,
         robot_radius=2.0)
@@ -190,7 +190,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
 
 
     
-def global_path_planner_run(env_id, animation):
+def global_path_planner_run(env_id, animation, n_it):
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
     
@@ -199,14 +199,14 @@ def global_path_planner_run(env_id, animation):
         start = [-13., -13., np.deg2rad(90.0)]
         goal = [13.0, 13.0, np.deg2rad(90.0)]
     elif env_id == 2:
-        start = [0.0, 0.0, np.deg2rad(90.0)]
-        goal = [0.0, 26.0, np.deg2rad(180.0)]   
+        start = [-15.0, -15.0, np.deg2rad(90.0)]
+        goal = [-15.0, 11.0, np.deg2rad(180.0)]   
     
     # retreive the obstacles of the environment
     obstacleList = build_environment(env_id) 
     
     # use RRT star Dubins for the path planning
-    path = RRT_star_Dubins(obstacleList, start, goal, animation)
+    path = RRT_star_Dubins(obstacleList, start, goal, animation, n_it)
     # path = RRT_dubins_run(obstacleList, start, goal, animation)
     # path = rrt_star_run(obstacleList, goal, start, animation)    
     
