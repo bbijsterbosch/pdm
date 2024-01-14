@@ -5,10 +5,7 @@ Path planning Sample Code with RRT*
 """
 
 import math
-import sys
 import matplotlib.pyplot as plt
-import pathlib
-sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 from global_path_planner.rrt import RRT
 
