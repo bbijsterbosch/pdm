@@ -17,7 +17,7 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 dt = 0.1
-def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
+def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obstacle = False):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
@@ -50,7 +50,8 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     # add goal
     
     env.add_goal(goal1)
-    env.add_obstacle(dynamicSphereObst1)
+    if dynamic_obstacle:
+        env.add_obstacle(dynamicSphereObst1)
     # add sensor
     sensor = FullSensor(['position'], ['position', 'size'], variance=0.0)
     env.add_sensor(sensor, [0])
@@ -68,7 +69,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     
     # select environment. 0 = easy, 1 = medium, 2 = hard and set animation=True to plot animation of Global Path Planner
 
-    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1, animation=True)
+    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1, animation=False)
     # cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
     cyaw = mpc.smooth_yaw(cyaw)
     # print(f"THIS IS THE CX {cx}", "\n \n")
@@ -109,12 +110,16 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
     for i in range(n_steps):
         ob, *_ = env.step(action)
 
-        dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][54]['position'][0],
-                                    ob['robot_0']['FullSensor']['obstacles'][54]['position'][1],
-                                      ob['robot_0']['FullSensor']['obstacles'][54]['size'][0], -0.4]
+        if dynamic_obstacle:
+            dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][54]['position'][0],
+                                      ob['robot_0']['FullSensor']['obstacles'][54]['position'][1],
+                                      ob['robot_0']['FullSensor']['obstacles'][54]['size'][0], 
+                                      -0.4]
                                       ])
+        else:
+            dynamic_obst = None
         
-        print(dynamic_obst)
+        
         delta = ob['robot_0']['joint_state']['steering']
         v = ob['robot_0']['joint_state']['forward_velocity'][0]
 
@@ -128,7 +133,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True):
         
         odelta, oa = None, None
         oa, odelta, ox, oy, oyaw, ov = mpc.iterative_linear_mpc_control(
-                xref, ob, x0, dref, oa, odelta, dynamic_obst)
+                xref, ob, x0, dref, oa, odelta, dynamic_obstacle)
 
         di, ai = 0.0, 0.0
         if odelta is not None:
