@@ -77,7 +77,7 @@ def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstac
     # print(f"THIS IS THE Cy {cy}", "\n \n")
     # print(f"THIS IS THE Cyaw {cyaw}", "\n \n")
     # print(f"THIS IS THE Ck {ck}", "\n \n")
-    """
+
     goal = [cx[-1], cy[-1]]
 
     
@@ -201,13 +201,8 @@ def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstac
         
 
 
-<<<<<<< HEAD
     return x, y, yaw, v, delta, t, delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise
 
-=======
-    return history
-    """
->>>>>>> c4211ec6059367287fe8cd767a2d396b5cb17eda
 
 if __name__ == "__main__":
 
