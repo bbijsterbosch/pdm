@@ -1,6 +1,7 @@
 import gymnasium as gym
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patch
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
 from urdfenvs.sensors.full_sensor import FullSensor
 
@@ -212,7 +213,7 @@ if __name__ == "__main__":
         plt.subplots()
         plt.plot(x_ref, y_ref, "-r", label="course")
         plt.plot(x, y, "-b", label="trajectory")
-        plt.Circle((0,0), 0.5)
+        plt.gca().add_patch(plt.Circle((0.5, 0.5), 0.2))
         plt.xlabel('x[m]')
         plt.ylabel('y[m]')
         plt.axis("equal")
