@@ -7,7 +7,7 @@ def build_environment(env_id):
     # the easy environment
     if env_id == 0:
         
-        obstacleList = [(10,10,2), (15,24,2), (26,15,2)]
+        obstacleList = [(-5,-5,2), (0,9,2), (11,0,2)]
         
         return obstacleList
     
@@ -32,15 +32,15 @@ def build_environment(env_id):
         obstacleList = []
         
         for i in range(-1,7):
-            obstacle = (7,2*i,1)
+            obstacle = (-8,2*i-15,1)
             obstacleList.append(obstacle)
         
         for i in range(3,11):
-            obstacle = (20,2*i,1)
+            obstacle = (5,2*i-15,1)
             obstacleList.append(obstacle)    
             
         for i in range(-1,11):
-            obstacle = (2*i, 22, 1)
+            obstacle = (2*i-15, 7, 1)
             obstacleList.append(obstacle)
         
         

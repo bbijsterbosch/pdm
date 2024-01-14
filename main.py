@@ -70,14 +70,14 @@ def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstac
     
     # select environment. 0 = easy, 1 = medium, 2 = hard and set animation=True to plot animation of Global Path Planner
 
-    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1, animation=False)
+    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=0, animation=True, n_it = 100)
     # cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
     cyaw = mpc.smooth_yaw(cyaw)
     # print(f"THIS IS THE CX {cx}", "\n \n")
     # print(f"THIS IS THE Cy {cy}", "\n \n")
     # print(f"THIS IS THE Cyaw {cyaw}", "\n \n")
     # print(f"THIS IS THE Ck {ck}", "\n \n")
-
+    """
     goal = [cx[-1], cy[-1]]
 
     
@@ -201,8 +201,13 @@ def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstac
         
 
 
+<<<<<<< HEAD
     return x, y, yaw, v, delta, t, delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise
 
+=======
+    return history
+    """
+>>>>>>> c4211ec6059367287fe8cd767a2d396b5cb17eda
 
 if __name__ == "__main__":
 

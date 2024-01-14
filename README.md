@@ -5,40 +5,59 @@ This repository contains a framework for global and local path planning with sta
 **Authors:** Bas Bijsterbosch, Wimer Leijendekker, Tjeerd Wams, Jules Zwanen.
 
 ## File structure
-- 📁 **environment** contains the descriptions of the three different environments and its obstacles.	
-- 📁 **global_path_planner:** contains all global path planning algorithms, such as RRT, RRT*, Dubins path and cubic splines. 
-- 📁 **local_path_planner:** contains the code for the MPC.
-- 📁 **utils:** contains some utilization functions that perform (mathematical) operations.
-- 📄 ```main.py:``` run the this file to run  the project.
+├─ 📁 **environment** contains the descriptions of the three different environments and its obstacles.  
+│   ├─ ```dynamic_obstacle.py```  
+│   ├─ ```goal.py```  
+│   ├─ ```three_environments.py```  
+│   └─ ```wall_of_spheres.py```  
+├─ 📁 **global_path_planner:** contains all global path planning algorithms  
+│   ├─ ```cubic_spline_planner.py```  
+│   ├─ ```dubins_path_planner.py```  
+│   ├─ ```main_global_path_planner.py```  
+│   ├─ ```RRT_dubins.py```  
+│   ├─ ```rrt_star_dubins.py```  
+│   ├─ ```rrt_star.py```  
+│   └─ ```rrt.py```  
+├─ 📁 **local_path_planner:** contains the code for the MPC.  
+│   └─ ```mpc.py```  
+├─ 📁 **utils** contains some utilization functions that perform (mathematical) operations.  
+│   ├─ ```angle.py```  
+│   └─ ```plot.py```  
+└─ ```main.py:``` run the this file to run  the project.  
 
 ## Project description
-The objective is for the car to reach the end goal through a slalom road with obstacles next to it while two moving obstacles are crossing the road. The model is tested by first letting it plan in easier environments without the moving obstacles and increasing the difficulty of the environment by making the lanes smaller and adding more turns and eventually adding the dynamic obstacles.
-The task of the robot is to reach an end goal by making a global path, then following this path and avoiding dynamic obstacles. The robot will do this under kinematic constraints of the bicycle model. 
-
-For planning the trajectory of the path a sampling-based motion planning algorithm is chosen. The algorithm Rapidly exploring Random Trees (RRT) is used for its easy use in high dimensional space, adaptability to non-holonomic constraints and as it has many extensions for specific tasks. For this project RRT and RRT* are compared and RRT* is chosen for its optimality. The RRT* is implemented with a Dubins Path planner to assure feasibility with the kinematic constraints of the bicycle model. The RRT* algorithm combined with the Dubins path planner proves to find the best solutions according to running time and minimal path length. When the path is found a Model Predictive Controller (MPC) will guide the robot along the path and avoid the obstacles by creating control commands for the environment.
+This repository is made as a TU Delft project for the course Planning & Decision making. The goal of the project is first use Rapidly exploring Random Tree's with extensions for global path planning. The tracking of this path and avoiding dynamic obstacles is done using Model Predictive Control. This is done in three different environments to measure performance.
 
 ## Installation
-1. Install packages:
-First install the environment
-```console
-pip3 install urdfenvs
-```
-Install package
-```console
-pip install dccp
-```
-2. clone this repository:
+1. clone this repository:
 ```console
 git clone git@github.com:bbijsterbosch/pdm.git
+```
+2. Create and activate the environment from pdm/:
+```console
+cd /PATH/TO/REPOSITORY/pdm
+
+conda env -f environment.yml
+
+conda activate URDF
 ```
 
 ## Running instructions
 Run the main
 ```console
-cd pdm
+cd /PATH/TO/REPOSITORY/pdm
 python3 main.py
 ```
-Note: For hiding the visuals of the global path planner set```animation = False``` in ```main.py```
+
+### Run settings in ```main.py```
+- bool ```animation```:     
+Set to True for showing animation of the global path planner
+- int ```env_id```:     
+Set to 0, 1 or 2 for increasing difficulty of environment where 1 is easy, 2 is medium and 3 is difficult
+- bool ```render```:     
+Set to True for showing render of robot driving the environment
+- bool ```dynamic_obstacle```:  
+Set to True for implementing dynamic obstacle
 
 > [!IMPORTANT]
 > The local planner will start only when the user has closed the plots of the local planner.
