@@ -20,7 +20,8 @@ For planning the trajectory of the path a sampling-based motion planning algorit
 ## Installation and run instructions
 1. Install packages:
 ```console
-pip install blablabla
+#First install the environment
+pip3 install urdfenvs
 pip install blabla
 ```
 2. clone this repository:
