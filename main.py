@@ -1,6 +1,6 @@
 import gymnasium as gym
 import numpy as np
-
+import matplotlib.pyplot as plt
 from urdfenvs.urdf_common.bicycle_model import BicycleModel
 from urdfenvs.sensors.full_sensor import FullSensor
 
@@ -17,7 +17,7 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 dt = 0.1
-def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obstacle = False):
+def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obstacle=False, gather_data=True):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
@@ -34,7 +34,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
         "urdf-env-v0",
         dt=0.1, robots=robots, render=render
     )
-    action = np.array([1, 0])
+    action = np.array([0, 0])
     pos0 = np.array([-13.0, -13.0, np.pi*0.5])
     vel0 = np.array([0.0, 0.0, 0.0])
     ob = env.reset(pos=pos0, vel=vel0)
@@ -107,9 +107,20 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
     sp = mpc.calc_speed_profile(cx, cy, cyaw, mpc.TARGET_SPEED)
     dl = 1.0
 
+    if gather_data:
+        t = []
+        time = 0.0
+        x = [state.x]
+        y = [state.y]
+        yaw = [state.yaw]
+        v = [state.v]
+        delta = [state.delta]
+        
+
+
     for i in range(n_steps):
         ob, *_ = env.step(action)
-
+        state = mpc.State(ob)
         if dynamic_obstacle:
             dynamic_obst = np.array([[ob['robot_0']['FullSensor']['obstacles'][54]['position'][0],
                                       ob['robot_0']['FullSensor']['obstacles'][54]['position'][1],
@@ -120,8 +131,7 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
             dynamic_obst = None
         
         
-        delta = ob['robot_0']['joint_state']['steering']
-        v = ob['robot_0']['joint_state']['forward_velocity'][0]
+        
 
         x0 = [state.x, state.y, state.v, state.yaw]
         
@@ -140,12 +150,19 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
             di, ai = odelta[0], oa[0]
             state = mpc.State(ob)
 
-        vi = v + ai*dt
-        delta_dot = (di - delta) / dt
+        vi = state.v + ai*dt
+        delta_dot = (di - state.delta) / dt
         action = np.array([vi, delta_dot])
         
-        
-        
+        time += dt
+
+        if gather_data:
+            x.append(state.x)
+            y.append(state.y)
+            yaw.append(state.yaw)
+            v.append(state.v)
+            delta.append(state.delta)
+            t.append(time)
 
         if mpc.check_goal(state, goal, target_ind, len(cx)):
             print("Goal Reached!!")
@@ -156,7 +173,25 @@ def run_prius(n_steps=3000, render=False, goal=True, obstacles=True, dynamic_obs
         #     action[1] = 0
         history.append(ob)
     env.close()
+
+    if gather_data:
+        
+        plt.plot(ox, oy, "xr", label="MPC")
+        plt.plot(cx, cy, "-r", label="course")
+        plt.plot(x, y, "ob", label="trajectory")
+        plt.plot(xref[0, :], xref[1, :], "xk", label="xref")
+        plt.plot(cx[target_ind], cy[target_ind], "xg", label="target")
+        
+        plt.axis("equal")
+        plt.grid(True)
+        plt.title("Time[s]:" + str(round(t, 2))
+                + ", speed[km/h]:" + str(round(state.v * 3.6, 2)))
+        plt.pause(0.0001)
+
+
     return history
 
+
 if __name__ == "__main__":
-    run_prius(render=True)
+    run_prius(render=False)
+    

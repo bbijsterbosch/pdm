@@ -55,7 +55,7 @@ class State:
         self.y = ob['robot_0']['joint_state']['position'][1] 
         self.yaw = ob['robot_0']['joint_state']['position'][2]
         self.v = ob['robot_0']['joint_state']['forward_velocity'][0]
-        self.predelta = None
+        self.delta = ob['robot_0']['joint_state']['steering']
 
 
 def pi_2_pi(angle):
@@ -262,6 +262,7 @@ def linear_mpc_control(xref, xbar, x0, dref, obstacle):
         odelta = get_nparray_from_matrix(u.value[1, :])
 
     return oa, odelta, ox, oy, oyaw, ov
+
 
 
 def calc_ref_trajectory(state, cx, cy, cyaw, ck, sp, dl, pind):
