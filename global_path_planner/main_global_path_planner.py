@@ -9,13 +9,13 @@ from global_path_planner.RRT_dubins import RRTDubins
 from global_path_planner.rrt_star import RRTStar
 from datetime import datetime
 
-def RRT_dubins_run(obstacles1, goal_pos, start_pos):
+def RRT_dubins_run(obstacles1, goal_pos, start_pos, animation):
 
     print("Start " + __file__)
     # ====Search Path with RRT====
     obstacleList = obstacles1  # [x,y,size(radius)]
     
-    show_animation = True
+    show_animation = animation
 
     rrt_dubins = RRTDubins(goal_pos, start_pos, obstacle_list=obstacleList, rand_area=[-15., 15.0])
     path = rrt_dubins.planning(animation=show_animation)
@@ -34,7 +34,7 @@ def RRT_dubins_run(obstacles1, goal_pos, start_pos):
         
     return path_arr
 
-def RRT_star_Dubins(obstacleList, start, goal):
+def RRT_star_Dubins(obstacleList, start, goal, animation):
     
     print("Start RRT star with Dubins planning")
 
@@ -43,7 +43,7 @@ def RRT_star_Dubins(obstacleList, start, goal):
       # [x,y,size(radius)]
 
     # show the RRT search or not
-    show_animation = True
+    show_animation = animation
 
     # calculate the path using RRT Start Dubins
     rrtstar_dubins = rrt_star_dubins.RRTStarDubins(start, goal, rand_area=[-15., 15.], obstacle_list=obstacleList)
@@ -66,12 +66,12 @@ def RRT_star_Dubins(obstacleList, start, goal):
     
     return path_arr
 
-def rrt_star_run(obstacle1, goal_pos, start_pos):
+def rrt_star_run(obstacle1, goal_pos, start_pos, animation):
     
     # ====Search Path with RRT====
     obstacle_list = obstacle1
     
-    show_animation = False
+    show_animation = animation
 
     # Set Initial parameters
     rrt_star = RRTStar(
@@ -190,7 +190,7 @@ def cubic_splines(path_arr, obstacleList, env_id):
 
 
     
-def global_path_planner_run(env_id):
+def global_path_planner_run(env_id, animation):
     
     # select environment. 0 = easy, 1 = medium, 2 = hard
     
@@ -206,9 +206,9 @@ def global_path_planner_run(env_id):
     obstacleList = build_environment(env_id) 
     
     # use RRT star Dubins for the path planning
-    path = RRT_star_Dubins(obstacleList, start, goal)
-    # path = RRT_dubins_run(obstacleList, start, goal)
-    # path = rrt_star_run(obstacleList, goal, start)    
+    path = RRT_star_Dubins(obstacleList, start, goal, animation)
+    # path = RRT_dubins_run(obstacleList, start, goal, animation)
+    # path = rrt_star_run(obstacleList, goal, start, animation)    
     
     # use cubic splines to smoothen the path
     cx, cy, cyaw, ck, s = cubic_splines(path, obstacleList, env_id)
