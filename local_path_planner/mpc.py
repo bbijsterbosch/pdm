@@ -10,9 +10,9 @@ NX = 4  # x = x, y, v, yaw
 NU = 2  # a = [accel, steer]
 T = 10 # Horizon length
 
-R = np.diag([0.5, 0.5])  # input cost matrix
+R = np.diag([0.1, 0.1])  # input cost matrix
 Rd = np.diag([0.5, 1])  # input difference cost matrix
-Q = np.diag([0.5, 0.5, 0.5, 0.5])  # state cost matrix
+Q = np.diag([1, 1, 0.8, 0.6])  # state cost matrix
 Qf = Q  # state final matrix
 GOAL_DIS = 1 # goal distance
 STOP_SPEED = 0.5 / 3.6  # stop speed

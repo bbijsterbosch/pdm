@@ -17,7 +17,7 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 
-def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstacle=False, gather_data=True, noise=True):
+def run_prius(n_steps=800, render=True, goal=True, obstacles=True, dynamic_obstacle=True, gather_data=True, noise=False):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
@@ -70,7 +70,7 @@ def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstac
     
     # select environment. 0 = easy, 1 = medium, 2 = hard and set animation=True to plot animation of Global Path Planner
 
-    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=0, animation=True, n_it = 100)
+    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1, animation=True, n_it = 400)
     # cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
     cyaw = mpc.smooth_yaw(cyaw)
     # print(f"THIS IS THE CX {cx}", "\n \n")
@@ -160,15 +160,15 @@ def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstac
 
         vi = state.v + ai*dt
         delta_dot = (di - state.delta) / dt
-        
+        action = np.array([vi, delta_dot])
         
         if noise:
-            gaussian_noise = np.random.normal(0, 0.3)
+            gaussian_noise = np.random.normal(0, 0.5)
             vi_noise = vi+gaussian_noise
             delta_dot_noise = delta_dot+gaussian_noise
-        
-        action = np.array([vi_noise, delta_dot_noise])
-
+            action = np.array([vi_noise, delta_dot_noise])
+            delta_input_noise.append(delta_dot_noise)
+            v_input_noise.append(vi_noise)
         time += dt
 
         if gather_data:
@@ -184,9 +184,8 @@ def run_prius(n_steps=50, render=True, goal=True, obstacles=True, dynamic_obstac
             yaw_ref.append(xref[3,0])
             delta_ref.append(dref)
             delta_input.append(delta_dot)
-            delta_input_noise.append(delta_dot_noise)
             v_input.append(vi)
-            v_input_noise.append(v_input_noise)
+            
         if mpc.check_goal(state, goal, target_ind, len(cx)):
             print("Goal Reached!!")
             break
@@ -213,6 +212,7 @@ if __name__ == "__main__":
         plt.subplots()
         plt.plot(x_ref, y_ref, "-r", label="course")
         plt.plot(x, y, "-b", label="trajectory")
+        plt.Circle((0,0), 0.5)
         plt.xlabel('x[m]')
         plt.ylabel('y[m]')
         plt.axis("equal")
@@ -233,28 +233,31 @@ if __name__ == "__main__":
         plt.ylabel('[$\delta$][rad]')
         plt.legend()
         plt.grid(True)
+        plt.show()
+        
 
         
+        plt.clf()
         plt.subplot(2,1,1)
         plt.plot(t,  v_input, label='velocity input')
         plt.xlabel('t[s]')
         plt.ylabel('velocity input [m/s]')
 
-        plt.subplot(2,1,2)
-        plt.plot(t, v_input_noise, label='signal with noise')
-        plt.xlabel('t[s]')
-        plt.ylabel('velocity input with noise [m/s]')
+        # plt.subplot(4,1,2)
+        # plt.plot(t, v_input_noise, label='signal with noise')
+        # plt.xlabel('t[s]')
+        # plt.ylabel('velocity input with noise [m/s]')
 
         
-        plt.subplot(2,1,1)
+        plt.subplot(2,1,2)
         plt.plot(t, delta_input, label='Steering input')
         plt.xlabel('t[s]')
         plt.ylabel('steering input [rad/s]')
         
-        plt.subplot(2,1,2)
-        plt.plot(t, delta_input_noise, label='Signal with noise')
-        plt.xlabel('t[s]')
-        plt.ylabel('steering input with noise [rad/s]')
+        # plt.subplot(4,1,4)
+        # plt.plot(t, delta_input_noise, label='Signal with noise')
+        # plt.xlabel('t[s]')
+        # plt.ylabel('steering input with noise [rad/s]')
         
-        # plt.tight_layout()
+        # # plt.tight_layout()
         plt.show()
