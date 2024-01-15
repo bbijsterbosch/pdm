@@ -18,7 +18,7 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 
-def run_prius(n_steps=1000, render=False, goal=True, obstacles=True, dynamic_obstacle=True, gather_data=True, noise=False):
+def run_prius(n_steps=1000, render=True, goal=True, obstacles=True, dynamic_obstacle=True, gather_data=False, noise=False):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
