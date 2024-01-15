@@ -123,9 +123,9 @@ def run_prius(n_steps=1000, render=True, goal=True, obstacles=True, dynamic_obst
         ob, *_ = env.step(action)
         state = mpc.State(ob)
         if dynamic_obstacle:
-            obs_pos = np.array([[ob['robot_0']['FullSensor']['obstacles'][54]['position'][0],
-                                ob['robot_0']['FullSensor']['obstacles'][54]['position'][1],
-                                ob['robot_0']['FullSensor']['obstacles'][54]['size'][0], 
+            obs_pos = np.array([[ob['robot_0']['FullSensor']['obstacles'][53]['position'][0],
+                                ob['robot_0']['FullSensor']['obstacles'][53]['position'][1],
+                                ob['robot_0']['FullSensor']['obstacles'][53]['size'][0], 
                                 -0.4]
                                       ]).T
         else:
