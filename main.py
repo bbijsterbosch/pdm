@@ -71,7 +71,7 @@ def run_prius(n_steps=1000, render=True, goal=True, obstacles=True, dynamic_obst
     
     # select environment. 0 = easy, 1 = medium, 2 = hard and set animation=True to plot animation of Global Path Planner
 
-    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1, animation=False, n_it = 400)
+    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1, animation=True, n_it = 500)
 
     cyaw = mpc.smooth_yaw(cyaw)
    
@@ -167,9 +167,10 @@ def run_prius(n_steps=1000, render=True, goal=True, obstacles=True, dynamic_obst
             action = np.array([vi_noise, delta_dot_noise])
             delta_input_noise.append(delta_dot_noise)
             v_input_noise.append(vi_noise)
-        timer += dt
+        
 
         if gather_data:
+            timer += dt
             x.append(state.x)
             y.append(state.y)
             yaw.append(state.yaw)

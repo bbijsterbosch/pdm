@@ -249,7 +249,7 @@ def linear_mpc_control(xref, xbar, x0, dref, obstacle, obs_pos):
         odelta = get_nparray_from_matrix(u.value[1, :])
 
     else:
-        print(prob.status)
+        print(f'MPC Status: {prob.status}')
         
         ox = get_nparray_from_matrix(x.value[0, :])
         oy = get_nparray_from_matrix(x.value[1, :])
