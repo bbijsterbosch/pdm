@@ -34,22 +34,22 @@ https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
 1. clone this repository:
 ```console
-git clone git@github.com:bbijsterbosch/pdm.git
+$ git clone git@github.com:bbijsterbosch/pdm.git
 ```
 2. Create and activate the environment from pdm/:
 ```console
-cd /PATH/TO/REPOSITORY/pdm
+$ cd /PATH/TO/REPOSITORY/pdm
 
-conda env create -f environment.yml
+$ conda env create -f environment.yml
 
-conda activate URDF
+$ conda activate URDF
 ```
 
 ## Running instructions
 Run the main
 ```console
-cd /PATH/TO/REPOSITORY/pdm
-python3 main.py
+$ cd /PATH/TO/REPOSITORY/pdm
+$ python3 main.py
 ```
 
 ### Run settings in ```main.py```
