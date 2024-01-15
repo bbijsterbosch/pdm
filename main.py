@@ -51,7 +51,6 @@ def run_prius(n_steps=1000, render=True, goal=True, obstacles=True, dynamic_obst
 
     # add goal
     
-    env.add_goal(goal1)
     if dynamic_obstacle:
         env.add_obstacle(dynamicSphereObst2)
     # add sensor
