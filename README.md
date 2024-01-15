@@ -63,4 +63,4 @@ Set to True for showing render of robot driving the environment
 Set to True for implementing dynamic obstacle
 
 > [!IMPORTANT]
-> The local planner will start only when the user has closed the plots of the local planner.
+> The local planner will start only when the user has closed the plots of the global planner.
