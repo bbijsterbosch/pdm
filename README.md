@@ -26,10 +26,10 @@ This repository contains a framework for global and local path planning with sta
 └─ ```main.py:``` run the this file to run  the project.  
 
 ## Project description
-This repository is made as a TU Delft project for the course Planning & Decision making. The goal of the project is first use Rapidly exploring Random Tree's with extensions for global path planning. The tracking of this path and avoiding dynamic obstacles is done using Model Predictive Control. This is done in three different environments to measure performance.
+This repository is made as a TU Delft project for the course Planning & Decision making. The goal of the project is first use Rapidly exploring Random Tree's with extensions for global path planning. The tracking of this path and avoiding dynamic obstacles is done using Model Predictive Control. This is done in three different environments to measure performance. A video of the end result can be found in the "video" directory.
 
 ## Installation
-This installation assumes that conda is installed in your computer if not follow the instructions ons:
+These installation instruction assume that conda is installed on your computer, if not follow these instructions:
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
 1. clone this repository:
@@ -40,7 +40,7 @@ git clone git@github.com:bbijsterbosch/pdm.git
 ```console
 cd /PATH/TO/REPOSITORY/pdm
 
-conda env -f environment.yml
+conda env create -f environment.yml
 
 conda activate URDF
 ```
