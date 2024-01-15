@@ -40,7 +40,7 @@ git clone git@github.com:bbijsterbosch/pdm.git
 ```console
 cd /PATH/TO/REPOSITORY/pdm
 
-conda env -f environment.yml
+conda env create -f environment.yml
 
 conda activate URDF
 ```
