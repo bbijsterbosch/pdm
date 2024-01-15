@@ -10,19 +10,18 @@ NX = 4  # x = x, y, v, yaw
 NU = 2  # a = [accel, steer]
 T = 10 # Horizon length
 
-R = np.diag([0.1, 0.1])  # input cost matrix
+R = np.diag([0.01, 0.01])  # input cost matrix
 Rd = np.diag([0.5, 1])  # input difference cost matrix
-Q = np.diag([1, 1, 0.8, 0.6])  # state cost matrix
+Q = np.diag([1, 1, 0.5, 0.5])  # state cost matrix
 Qf = Q  # state final matrix
 GOAL_DIS = 1 # goal distance
 STOP_SPEED = 0.5 / 3.6  # stop speed
-MAX_TIME = 500 # max simulation time
 
 # iterative paramter
 MAX_ITER = 2  # Max iteration
 DU_TH = 0.1  # iteration finish param
 
-TARGET_SPEED = 10.0 / 3.6  # [m/s] target speed
+TARGET_SPEED = 10 / 3.6  # [m/s] target speed
 N_IND_SEARCH = 10  # Search index number
 
 DT = 0.1  # [s] time tick
@@ -41,8 +40,6 @@ MAX_DSTEER = np.deg2rad(30.0)  # maximum steering speed [rad/s]
 MAX_SPEED = 55.0 / 3.6  # maximum speed [m/s]
 MIN_SPEED = -20.0 / 3.6  # minimum speed [m/s]
 MAX_ACCEL = 1.0  # maximum accel [m/ss]
-
-show_animation = True
 
 
 class State:
@@ -93,7 +90,7 @@ def update_state(state, a, delta):
         delta = MAX_STEER
     elif delta <= -MAX_STEER:
         delta = -MAX_STEER
-
+    #Discrete state update
     state.x = state.x + state.v * math.cos(state.yaw) * DT
     state.y = state.y + state.v * math.sin(state.yaw) * DT
     state.yaw = state.yaw + state.v / WB * math.tan(delta) * DT
@@ -252,7 +249,7 @@ def linear_mpc_control(xref, xbar, x0, dref, obstacle, obs_pos):
         odelta = get_nparray_from_matrix(u.value[1, :])
 
     else:
-        print("Error: Cannot solve mpc..")
+        print(prob.status)
         
         ox = get_nparray_from_matrix(x.value[0, :])
         oy = get_nparray_from_matrix(x.value[1, :])
@@ -346,61 +343,6 @@ def smooth_yaw(yaw):
 
     return yaw
 
-def plot_car(x, y, yaw, steer=0.0, cabcolor="-r", truckcolor="-k"):  # pragma: no cover
-
-    outline = np.array([[-BACKTOWHEEL, (LENGTH - BACKTOWHEEL), (LENGTH - BACKTOWHEEL), -BACKTOWHEEL, -BACKTOWHEEL],
-                        [WIDTH / 2, WIDTH / 2, - WIDTH / 2, -WIDTH / 2, WIDTH / 2]])
-
-    fr_wheel = np.array([[WHEEL_LEN, -WHEEL_LEN, -WHEEL_LEN, WHEEL_LEN, WHEEL_LEN],
-                         [-WHEEL_WIDTH - TREAD, -WHEEL_WIDTH - TREAD, WHEEL_WIDTH - TREAD, WHEEL_WIDTH - TREAD, -WHEEL_WIDTH - TREAD]])
-
-    rr_wheel = np.copy(fr_wheel)
-
-    fl_wheel = np.copy(fr_wheel)
-    fl_wheel[1, :] *= -1
-    rl_wheel = np.copy(rr_wheel)
-    rl_wheel[1, :] *= -1
-
-    Rot1 = np.array([[math.cos(yaw), math.sin(yaw)],
-                     [-math.sin(yaw), math.cos(yaw)]])
-    Rot2 = np.array([[math.cos(steer), math.sin(steer)],
-                     [-math.sin(steer), math.cos(steer)]])
-
-    fr_wheel = (fr_wheel.T.dot(Rot2)).T
-    fl_wheel = (fl_wheel.T.dot(Rot2)).T
-    fr_wheel[0, :] += WB
-    fl_wheel[0, :] += WB
-
-    fr_wheel = (fr_wheel.T.dot(Rot1)).T
-    fl_wheel = (fl_wheel.T.dot(Rot1)).T
-
-    outline = (outline.T.dot(Rot1)).T
-    rr_wheel = (rr_wheel.T.dot(Rot1)).T
-    rl_wheel = (rl_wheel.T.dot(Rot1)).T
-
-    outline[0, :] += x
-    outline[1, :] += y
-    fr_wheel[0, :] += x
-    fr_wheel[1, :] += y
-    rr_wheel[0, :] += x
-    rr_wheel[1, :] += y
-    fl_wheel[0, :] += x
-    fl_wheel[1, :] += y
-    rl_wheel[0, :] += x
-    rl_wheel[1, :] += y
-
-    plt.plot(np.array(outline[0, :]).flatten(),
-             np.array(outline[1, :]).flatten(), truckcolor)
-    plt.plot(np.array(fr_wheel[0, :]).flatten(),
-             np.array(fr_wheel[1, :]).flatten(), truckcolor)
-    plt.plot(np.array(rr_wheel[0, :]).flatten(),
-             np.array(rr_wheel[1, :]).flatten(), truckcolor)
-    plt.plot(np.array(fl_wheel[0, :]).flatten(),
-             np.array(fl_wheel[1, :]).flatten(), truckcolor)
-    plt.plot(np.array(rl_wheel[0, :]).flatten(),
-             np.array(rl_wheel[1, :]).flatten(), truckcolor)
-    plt.plot(x, y, "*")
-
 def check_goal(state, goal, tind, nind):
 
     # check goal
@@ -419,149 +361,3 @@ def check_goal(state, goal, tind, nind):
         return True
 
     return False
-
-def run_mpc(ob, cx, cy, ck, cyaw):
-    sp = calc_speed_profile(cx, cy, cyaw, TARGET_SPEED)
-
-    state = State(ob)
-    target_ind, _ = calc_nearest_index(state, cx, cy, cyaw, 0)
-    x0 = [state.x, state.y, state.v, state.yaw]
-    dl = 4.0
-    cyaw = smooth_yaw(cyaw)
-    xref, target_ind, dref = calc_ref_trajectory(
-            state, cx, cy, cyaw, ck, sp, dl, target_ind)
-    
-    odelta, oa = None, None
-    oa, odelta, ox, oy, oyaw, ov = iterative_linear_mpc_control(
-            xref, ob, x0, dref, oa, odelta)
-
-    di, ai = 0.0, 0.0
-
-
-    if odelta is not None:
-        di, ai = odelta[0], oa[0]
-        state = update_state(state, ai, di)
-
-    # vi = state.v + oa[0]*DT 
-    # deltai = odelta[0]
-    return oa[0], odelta[1] 
-
-def do_simulation(cx, cy, cyaw, ck, sp, dl, initial_state,ob):
-    """
-    Simulation
-
-    cx: course x position list
-    cy: course y position list
-    cy: course yaw position list
-    ck: course curvature list
-    sp: speed profile
-    dl: course tick [m]
-
-    """
-
-    goal = [cx[-1], cy[-1]]
-
-    state = initial_state
-
-    # initial yaw compensation
-    if state.yaw - cyaw[0] >= math.pi:
-        state.yaw -= math.pi * 2.0
-    elif state.yaw - cyaw[0] <= -math.pi:
-        state.yaw += math.pi * 2.0
-
-    time = 0.0
-    x = [state.x]
-    y = [state.y]
-    yaw = [state.yaw]
-    v = [state.v]
-    t = [0.0]
-    d = [0.0]
-    a = [0.0]
-    target_ind, _ = calc_nearest_index(state, cx, cy, cyaw, 0)
-
-    odelta, oa = None, None
-
-    cyaw = smooth_yaw(cyaw)
-
-    while MAX_TIME >= time:
-        xref, target_ind, dref = calc_ref_trajectory(
-            state, cx, cy, cyaw, ck, sp, dl, target_ind)
-
-        x0 = [state.x, state.y, state.v, state.yaw]  # current state
-
-        oa, odelta, ox, oy, oyaw, ov = iterative_linear_mpc_control(
-            xref, ob, x0, dref, oa, odelta)
-
-        di, ai = 0.0, 0.0
-        if odelta is not None:
-            di, ai = odelta[0], oa[0]
-            state = update_state(state, ai, di)
-
-        time = time + DT
-
-        x.append(state.x)
-        y.append(state.y)
-        yaw.append(state.yaw)
-        v.append(state.v)
-        t.append(time)
-        d.append(di)
-        a.append(ai)
-
-        
-        if check_goal(state, goal, target_ind, len(cx)):
-            print("Goal")
-            break
-
-        if show_animation:  # pragma: no cover
-            plt.cla()
-            # for stopping simulation with the esc key.
-            plt.gcf().canvas.mpl_connect('key_release_event',
-                    lambda event: [exit(0) if event.key == 'escape' else None])
-            if ox is not None:
-                plt.plot(ox, oy, "xr", label="MPC")
-            plt.plot(cx, cy, "-r", label="course")
-            plt.plot(x, y, "ob", label="trajectory")
-            plt.plot(xref[0, :], xref[1, :], "xk", label="xref")
-            plt.plot(cx[target_ind], cy[target_ind], "xg", label="target")
-            plot_car(state.x, state.y, state.yaw, steer=di)
-            plt.axis("equal")
-            plt.grid(True)
-            plt.title("Time[s]:" + str(round(time, 2))
-                      + ", speed[km/h]:" + str(round(state.v * 3.6, 2)))
-            plt.pause(0.0001)
-
-    return t, x, y, yaw, v, d, a
-
-def run_mpc_graph(ob, cx, cy, ck, cyaw):
-    dl = 1.0  # course tick
-    # cx, cy, cyaw, ck = get_straight_course(dl)
-    # cx, cy, cyaw, ck = get_straight_course2(dl)
-    # cx, cy, cyaw, ck = get_straight_course3(dl)
-    # cx, cy, cyaw, ck = get_forward_course(dl)
-    
-
-    sp = calc_speed_profile(cx, cy, cyaw, TARGET_SPEED)
-
-    initial_state = State(ob)
-
-    t, x, y, yaw, v, d, a = do_simulation(
-        cx, cy, cyaw, ck, sp, dl, initial_state,ob)
-
-    if show_animation:  # pragma: no cover
-        plt.close("all")
-        plt.subplots()
-        plt.plot(cx, cy, "-r", label="spline")
-        plt.plot(x, y, "-g", label="tracking")
-        plt.grid(True)
-        plt.axis("equal")
-        plt.xlabel("x[m]")
-        plt.ylabel("y[m]")
-        plt.legend()
-
-        plt.subplots()
-        plt.plot(t, v, "-r", label="speed")
-        plt.grid(True)
-        plt.xlabel("Time [s]")
-        plt.ylabel("Speed [kmh]")
-
-        plt.show()

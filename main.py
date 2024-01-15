@@ -18,7 +18,7 @@ from urdfenvs.urdf_common.urdf_env import UrdfEnv
 
 
 
-def run_prius(n_steps=800, render=False, goal=True, obstacles=True, dynamic_obstacle=True, gather_data=True, noise=False):
+def run_prius(n_steps=1000, render=False, goal=True, obstacles=True, dynamic_obstacle=True, gather_data=True, noise=False):
     robots = [
         BicycleModel(
             urdf='prius.urdf',
@@ -71,13 +71,10 @@ def run_prius(n_steps=800, render=False, goal=True, obstacles=True, dynamic_obst
     
     # select environment. 0 = easy, 1 = medium, 2 = hard and set animation=True to plot animation of Global Path Planner
 
-    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1, animation=True, n_it = 400)
-    # cx, cy, cyaw, ck, = cx_bas, cy_bas, cyaw_bas, ck_bas
+    cx, cy, cyaw, ck, _ = global_path_planner_run(env_id=1, animation=False, n_it = 400)
+
     cyaw = mpc.smooth_yaw(cyaw)
-    # print(f"THIS IS THE CX {cx}", "\n \n")
-    # print(f"THIS IS THE Cy {cy}", "\n \n")
-    # print(f"THIS IS THE Cyaw {cyaw}", "\n \n")
-    # print(f"THIS IS THE Ck {ck}", "\n \n")
+   
 
     goal = [cx[-1], cy[-1]]
 
@@ -97,13 +94,6 @@ def run_prius(n_steps=800, render=False, goal=True, obstacles=True, dynamic_obst
     env.update_visualizations(positions=path_positions)
     
 
-
-
-
-    ########################
-        
-    pind = 0
-    n = 20
     state = mpc.State(ob)
     target_ind, _ = mpc.calc_nearest_index(state, cx, cy, cyaw, 0)
     sp = mpc.calc_speed_profile(cx, cy, cyaw, mpc.TARGET_SPEED)
@@ -199,15 +189,9 @@ def run_prius(n_steps=800, render=False, goal=True, obstacles=True, dynamic_obst
             print("Goal Reached!!")
             break
         
-        # print(f'action: {action}')
-        # if ob['robot_0']['joint_state']['steering'] > 0.2:
-        #     action[1] = 0
+        
         history.append(ob)
     env.close()
-
-        
-        
-
 
     return x, y, yaw, v, delta, t, delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise, computation_times
 
@@ -216,29 +200,22 @@ if __name__ == "__main__":
 
     x, y, yaw, v, delta, t,delta, x_ref, y_ref, v_ref, yaw_ref, delta_ref, gather_data, v_input, v_input_noise, delta_input, delta_input_noise, computation_times = run_prius()
     
-    if gather_data:
-        plt.subplots()
-        plt.plot(x, computation_times, "-r", label="Computation time vs Y positition")
-        plt.plot()
-        plt.ylabel('computation time - MPC[s]')
-        plt.xlabel('x[m]')
-        plt.axis("equal")
-        plt.legend()
-        plt.grid(True)
+    #Post Processing and Plotting
+    eucledian_distances = []
+    for i in range(len(x_ref)):
+        eucledian_distance = np.sqrt((x_ref[i] - x[i])**2 + (y_ref[i] - y[i])**2)
+        eucledian_distances.append(eucledian_distance)
 
-        plt.subplots()
-        plt.plot(t, computation_times, "-r", label="Computation time vs Y positition")
-        plt.plot()
-        plt.ylabel('computation time - MPC[s]')
-        plt.xlabel('t[s]')
-        plt.axis("equal")
-        plt.legend()
-        plt.grid(True)
+    orientation_errors = []
+    for i in range(len(yaw_ref)):
+        orientation_error = min(np.abs(yaw[i] - yaw_ref[i]), (2*np.pi - np.abs(yaw[i]-yaw_ref[i])))
+        orientation_errors.append(orientation_error)
+
+    if gather_data:
 
         plt.subplots()
         plt.plot(x_ref, y_ref, "-r", label="course")
         plt.plot(x, y, "-b", label="trajectory")
-        plt.gca().add_patch(plt.Circle((0.5, 0.5), 0.2))
         plt.xlabel('x[m]')
         plt.ylabel('y[m]')
         plt.axis("equal")
@@ -261,29 +238,40 @@ if __name__ == "__main__":
         plt.grid(True)
         plt.show()
         
+        plt.clf()
+        plt.subplot(3,1,1)
+        plt.plot(t, computation_times, "-b", label="Computation time vs t positition")
+        plt.ylabel('computation time - MPC[s]')
+        plt.xlabel('t[s]')
+        plt.axis("equal")
+        plt.legend()
+        plt.grid(True)
 
-        
+        plt.subplot(3,1,2)
+        plt.plot(t, eucledian_distances, "-b", label="Euclidean distance")
+        plt.xlabel('t[s]')
+        plt.ylabel('Euclidean distance [m]')
+        plt.axis("equal")
+        plt.legend()
+        plt.grid(True)
+
+        plt.subplot(3,1,3)
+        plt.plot(t, orientation_errors, "-b", label="Orientation Error")
+        plt.xlabel('t[s]')
+        plt.ylabel('Yaw Error[rad]')
+        plt.axis("equal")
+        plt.legend()
+        plt.grid(True)
+
         plt.clf()
         plt.subplot(2,1,1)
         plt.plot(t,  v_input, label='velocity input')
         plt.xlabel('t[s]')
         plt.ylabel('velocity input [m/s]')
-
-        # plt.subplot(4,1,2)
-        # plt.plot(t, v_input_noise, label='signal with noise')
-        # plt.xlabel('t[s]')
-        # plt.ylabel('velocity input with noise [m/s]')
-
         
         plt.subplot(2,1,2)
         plt.plot(t, delta_input, label='Steering input')
         plt.xlabel('t[s]')
         plt.ylabel('steering input [rad/s]')
         
-        # plt.subplot(4,1,4)
-        # plt.plot(t, delta_input_noise, label='Signal with noise')
-        # plt.xlabel('t[s]')
-        # plt.ylabel('steering input with noise [rad/s]')
-        
-        # # plt.tight_layout()
         plt.show()
