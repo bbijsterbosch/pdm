@@ -1,7 +1,7 @@
 # Path planning and following in a dynamic environment with kinematic bicycle model constraints
 
 This repository contains a framework for global and local path planning with static and dynamical obstacles.
-
+![plot](./images/Screenshot from 2024-01-14 21-46-32.png)
 **Authors:** Bas Bijsterbosch, Wimer Leijendekker, Tjeerd Wams, Jules Zwanen.
 
 ## File structure
