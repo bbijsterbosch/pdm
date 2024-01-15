@@ -1,7 +1,7 @@
 # Path planning and following in a dynamic environment with kinematic bicycle model constraints
 
 This repository contains a framework for global and local path planning with static and dynamical obstacles.
-
+![plot](./images/Screenshot2.png)
 **Authors:** Bas Bijsterbosch, Wimer Leijendekker, Tjeerd Wams, Jules Zwanen.
 
 ## File structure
@@ -29,6 +29,9 @@ This repository contains a framework for global and local path planning with sta
 This repository is made as a TU Delft project for the course Planning & Decision making. The goal of the project is first use Rapidly exploring Random Tree's with extensions for global path planning. The tracking of this path and avoiding dynamic obstacles is done using Model Predictive Control. This is done in three different environments to measure performance.
 
 ## Installation
+This installation assumes that conda is installed in your computer if not follow the instructions ons:
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
+
 1. clone this repository:
 ```console
 git clone git@github.com:bbijsterbosch/pdm.git
